@@ -1,0 +1,19 @@
+{% macro form_field(fields) %}
+
+    {% for field in fields %}
+        <div id="field-{{field.name}}">
+            <label for="{{field.name}}">{{ field.label }}</label>
+            <br>
+            {{ field }}
+            <br>
+            {% if field.errors %}
+                <ul>
+                    {% for e in field.errors %}
+                        <li>{{ e }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+    {% endfor %}
+
+{% endmacro %}
