@@ -1,0 +1,48 @@
+{% extends 'index.html' %}
+{% from '_form_field.html' import form_field %}
+
+{% block title %}Strona główna
+{% endblock %}
+
+{% block content %}
+
+    <h1>Witaj
+        {% if current_user.is_authenticated %}
+        {{ current_user }}         {% endif %}
+    </h1>
+
+    <form method="POST">
+        <input type="hidden" value="logout" name="form">
+        <button>Wyloguj</button>
+    </form>
+
+    <hr>
+
+    <div style="border: 1px solid; width: 512px; padding: 8px">
+        <h3 style="margin: 0;">Użytkownicy</h3>
+        <ul>
+            {% for u in users %}
+                <li>{{ u }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <br>
+
+    <form method="POST">
+        {{ r_form.csrf_token }}
+        {{ form_field([r_form.username, r_form.email, r_form.password, r_form.confirm_password]) }}
+        <input type="hidden" value="register" name="form">
+        <button>Rejestracja</button>
+    </form>
+
+    <br><hr><br>
+
+    <form method="POST">
+        {{ l_form.csrf_token }}
+        {{ form_field([l_form.email, l_form.password]) }}
+        <input type="hidden" value="login" name="form">
+        <button>Logowanie</button>
+    </form>
+
+{% endblock %}

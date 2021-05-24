@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
 
 db = SQLAlchemy()
 
@@ -11,6 +12,9 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(64), nullable=False, unique=True)
     password = db.Column(db.String(256), nullable=False)
     admin = db.Column(db.Boolean(), nullable=False, default=False)
+    register_date = db.Column(db.DateTime(), nullable=False, default=datetime.now())
+
+    colonies = db.relationship('Colony', backref='user', lazy='dynamic')
 
     def __str__(self):
         return self.username
@@ -33,3 +37,33 @@ class User(db.Model, UserMixin):
         """Check if password is the same like user password."""
 
         return check_password_hash(self.password, password)
+
+
+class Buildings(db.Model):
+
+    id = db.Column(db.Integer(), primary_key=True, nullable=False)
+    colony_id = db.Column(db.Integer(), db.ForeignKey('colony.id'))
+
+    def __repr__(self):
+        return f"Buildings for {self.colony_id} colony"
+
+    #----------------------------------------------------------------
+
+
+class Colony(db.Model):
+
+    id = db.Column(db.Integer(), primary_key=True, nullable=False)
+    owner_id = db.Column(db.Integer(), db.ForeignKey('user.id'))
+    name = db.Column(db.String(128), nullable=False, unique=True)
+    create_date = db.Column(db.DateTime(), nullable=False, default=datetime.now())
+
+    #buildings = db.relationship('Buildings')
+
+    def __str__(self):
+        return self.name
+
+
+    def __repr__(self):
+        return f"<Colony: {self.name} | ID: {self.id}>"
+    
+    #----------------------------------------------------------------

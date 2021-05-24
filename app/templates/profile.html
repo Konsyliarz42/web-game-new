@@ -1,0 +1,27 @@
+{% extends 'index.html' %}
+{% from '_form_field.html' import form_field %}
+
+{% block title %}Profil użytkownika {{ current_user.username }}
+{% endblock %}
+
+{% block content %}
+
+    <h1>Profil</h1>
+    <p>Nazwa użytkownika: {{ current_user.username }}</p>
+    <p>ID: {{ current_user.id }}</p>
+    <p>Data Założenia: {{ current_user.register_date }}</p>
+    <p>
+        Kolonie:
+        <ul>
+            {% for colony in current_user.colonies %}
+                <li>
+                    <p>Nazwa: {{ colony.name }}</p>
+                    <p>ID: {{ colony.id }}</p>
+                    <p>Data utworzenia: {{ colony.create_date }}</p>
+                </li>
+            {% endfor %}
+        </ul>
+    </p>
+    
+
+{% endblock %}

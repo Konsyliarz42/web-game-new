@@ -1,14 +1,19 @@
-from flask import Blueprint, render_template, request
-from flask_login import login_user, logout_user
+from flask import Blueprint, request
+from flask_login import login_user, logout_user, login_required
 
-from .models import db, User
+from .models import db, User, Colony
 from .forms import RegisterForm, LoginForm
-from .routes_functions import get_user
+from .routes_functions import response, get_user, page_not_found, unauthorized
 
 bp = Blueprint('app', __name__)
 
 @bp.route('/', methods=['GET', 'POST'])
+@bp.route('/home', methods=['GET', 'POST'])
 def home():
+    """Home page of the game.\n
+    You can register and login here.\t
+    Every else check information about game.\n
+    Return code 200 and 201."""
 
     r_form = RegisterForm()
     l_form = LoginForm()
@@ -40,9 +45,22 @@ def home():
         if form_name == 'logout':
             logout_user()
     
-    return render_template('index.html',
-        current_user=get_user(),
+    return response('home.html', code,
         users=User.query.all(),
         r_form=r_form,
         l_form=l_form
-    ), code
+    )
+
+
+@login_required
+@bp.route('/user/<int:user_id>', methods=['GET', 'POST'])
+def profile(user_id):
+
+    user = get_user(user_id)
+
+    if not user:
+        return page_not_found() # User not found
+    elif user != get_user():
+        return unauthorized()
+
+    return response('profile.html')
