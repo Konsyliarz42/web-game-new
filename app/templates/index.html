@@ -14,7 +14,35 @@
     </head>
 
     <body>
+
+        <form method="POST" action="/home">
+            <input type="hidden" value="logout" name="form">
+            <p>{{ current_user }} <button>Wyloguj</button></p>
+        </form>
+
+        <p>
+            <a href="/home"><button>Strona główna</button></a>
+            <a href="/auth"><button>Logowanie/Rejestracja</button></a>
+            
+
+            {% if current_user.is_authenticated %}
+                {% if current_user.admin %}
+                    <a href="/admin"><button>Panel administracji</button></a>
+                {% else %}
+                    <a href="/"><button disabled>Panel administracji</button></a>
+                {% endif %}
+
+                <a href="/user/{{current_user.id}}/profile"><button>Profil użytkownika</button></a>
+            {% else %}
+                <a href="/"><button disabled>Panel administracji</button></a>
+                <a href="/"><button disabled>Profil użytkownika</button></a>
+            {% endif%}
+        </p>
+        
+        <hr>
+
         {% block content %}
         {% endblock %}
+
     </body>
 </html>

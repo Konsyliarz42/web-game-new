@@ -1,6 +1,6 @@
 from wtforms.validators import ValidationError
 
-from .models import User
+from .models import User, Colony
 
 class UniqueUsername():
 
@@ -36,4 +36,16 @@ class CheckPasswordFromEmail():
         user = User.query.filter_by(email=form['email'].data).first()
 
         if not user.check_password(field.data):
+            raise ValidationError(self.message)
+
+
+class UniqueColony():
+
+    def __init__(self, message=None):
+        self.message = message or "This name is already in our database."
+        self.colonies = [c.name for c in Colony.query.all()]
+
+    
+    def __call__(self, form, field):
+        if field.data in self.colonies:
             raise ValidationError(self.message)

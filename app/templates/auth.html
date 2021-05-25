@@ -1,0 +1,29 @@
+{% extends 'index.html' %}
+{% from '_form_field.html' import form_field %}
+
+{% block title %}Logowanie/Rejestracja
+{% endblock %}
+
+{% block content %}
+
+    <div style="display: flex;">
+        <form method="POST" style="border: 1px solid; padding: 8px;">
+            <h3>Rejestracja</h3>
+            {{ r_form.csrf_token }}
+            {{ form_field([r_form.username, r_form.email, r_form.password, r_form.confirm_password]) }}
+            <input type="hidden" value="register" name="form">
+            <br><button>Rejestracja</button>
+        </form>
+
+        <div style="padding: 8px;"></div>
+
+        <form method="POST" style="border: 1px solid; padding: 8px;">
+            <h3>Logowanie</h3>
+            {{ l_form.csrf_token }}
+            {{ form_field([l_form.email, l_form.password]) }}
+            <input type="hidden" value="login" name="form">
+            <br><button>Logowanie</button>
+        </form>
+    </div>
+
+{% endblock %}

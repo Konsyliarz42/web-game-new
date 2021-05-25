@@ -8,4 +8,10 @@
 
     <h1>Nowa Kolonia</h1>
 
+    <form method="POST" style="border: 1px solid; padding: 8px;">
+        {{ form.csrf_token }}
+        {{ form_field([form.name]) }}
+        <button>Utwórz</button>
+    </form>
+
 {% endblock %}

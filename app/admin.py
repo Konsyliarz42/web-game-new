@@ -75,3 +75,4 @@ def create_first_admin():
 
 def admin_views(admin):
     admin.add_view(AdminModel(models.User, models.db.session))
+    admin.add_view(AdminModel(models.Colony, models.db.session))

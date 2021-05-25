@@ -9,6 +9,7 @@
     <h1>Profil</h1>
     <p>Nazwa użytkownika: {{ current_user.username }}</p>
     <p>ID: {{ current_user.id }}</p>
+    <p>Administrator: {{ current_user.admin }}</p>
     <p>Data Założenia: {{ current_user.register_date }}</p>
     <p>
         Kolonie:
@@ -18,10 +19,22 @@
                     <p>Nazwa: {{ colony.name }}</p>
                     <p>ID: {{ colony.id }}</p>
                     <p>Data utworzenia: {{ colony.create_date }}</p>
+                    <form method="POST">
+                        <input type="hidden" name="id" value="{{colony.id}}">
+                        <input type="hidden" name="form" value="delete_colony">
+                        <button>Zniszcz kolonię</button>
+                    </form>
                 </li>
+            {% else %}
+                <p>Brak <a href="/colony/create"><button>Utwórz kolonie</button></a></p>
+                
             {% endfor %}
         </ul>
     </p>
+    <form method="POST">
+        <input type="hidden" name="form" value="delete_user">
+        <button>Usuń konto</button>
+    </form>
     
 
 {% endblock %}

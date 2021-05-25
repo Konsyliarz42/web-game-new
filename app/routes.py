@@ -10,10 +10,16 @@ bp = Blueprint('app', __name__)
 @bp.route('/', methods=['GET', 'POST'])
 @bp.route('/home', methods=['GET', 'POST'])
 def home():
-    """Home page of the game.\n
-    You can register and login here.\t
-    Every else check information about game.\n
-    Return code 200 and 201."""
+
+    # Logout user
+    if request.method == 'POST':
+        logout_user()
+    
+    return response('home.html')
+
+
+@bp.route('/auth', methods=['GET', 'POST'])
+def auth():
 
     r_form = RegisterForm()
     l_form = LoginForm()
@@ -22,8 +28,7 @@ def home():
     if request.method == 'POST':
         form_name = request.form['form']
 
-        # Register new user
-        if form_name == 'register' and r_form.validate_on_submit():
+        if form_name == 'register' and r_form.validate_on_submit(): # Register new user
             code = 201
             user = User(
                 username=r_form.username.data,
@@ -33,34 +38,15 @@ def home():
             db.session.add(user)
             db.session.commit()
             login_user(user)
-
-        # Login user
-        if form_name == 'login' and l_form.validate_on_submit():
+        elif form_name == 'login' and l_form.validate_on_submit(): # Login user
             user = User.query.filter_by(
                 email=l_form.email.data
             ).first()
             login_user(user)
+        else:
+            code = 400
 
-        # Logout user
-        if form_name == 'logout':
-            logout_user()
-    
-    return response('home.html', code,
-        users=User.query.all(),
+    return response('auth.html', code,
         r_form=r_form,
         l_form=l_form
     )
-
-
-@login_required
-@bp.route('/user/<int:user_id>', methods=['GET', 'POST'])
-def profile(user_id):
-
-    user = get_user(user_id)
-
-    if not user:
-        return page_not_found() # User not found
-    elif user != get_user():
-        return unauthorized()
-
-    return response('profile.html')

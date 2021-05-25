@@ -1,13 +1,14 @@
 from flask_wtf import FlaskForm
 from wtforms import fields, validators
 
-from .forms_validators import UniqueUsername, UniqueEmail, CheckPasswordFromEmail
+from .forms_validators import UniqueUsername, UniqueEmail, CheckPasswordFromEmail, UniqueColony
 
 NAMES = {
     'username': "Nazwa użytkownika",
     'password': "Hasło",
     'confirm-password': "Potwierdź hasło",
-    'email': "Adres e-mail"
+    'email': "Adres e-mail",
+    'colony-name': "Nazwa kolonii"
 }
 
 MESSAGES = {
@@ -71,5 +72,17 @@ class LoginForm(FlaskForm):
         validators=[
             validators.DataRequired(MESSAGES['required']),
             CheckPasswordFromEmail()
+        ]
+    )
+
+
+class CreateColonyForm(FlaskForm):
+
+    name = fields.StringField(
+        label=NAMES['colony-name'],
+        validators=[
+            validators.DataRequired(MESSAGES['required']),
+            validators.Length(3, 128, MESSAGES['length'].format(3, 128)),
+            UniqueColony(MESSAGES['unique-username'])
         ]
     )

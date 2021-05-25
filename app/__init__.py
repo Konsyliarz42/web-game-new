@@ -17,8 +17,10 @@ migrate = Migrate(app, models.db)
 app.app_context().push()
 
 # Register blueprints
-from . import routes # I know that it should not be in that place, but if i move it on the top "No application found".
+from . import routes, routes_colony, routes_user # I know that it should not be in that place, but if i move it on the top "No application found".
 app.register_blueprint(routes.bp)
+app.register_blueprint(routes_colony.bp)
+app.register_blueprint(routes_user.bp)
 
 # Register error pages
 app.register_error_handler(404, routes_functions.page_not_found)
