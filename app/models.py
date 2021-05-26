@@ -3,6 +3,8 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 
+from . import buildings
+
 db = SQLAlchemy()
 
 class User(db.Model, UserMixin):
@@ -54,6 +56,15 @@ class Buildings(db.Model):
 
     #----------------------------------------------------------------
 
+    def get_buildings(self):
+
+        return {
+            'houses': buildings.Houses(self.houses),
+            'sawmill': buildings.Sawmill(self.sawmill),
+            'quarry': buildings.Quarry(self.quarry),
+            'farm': buildings.Farm(self.farm)
+        }
+
 
 class Colony(db.Model):
 
@@ -62,7 +73,7 @@ class Colony(db.Model):
     name = db.Column(db.String(128), nullable=False, unique=True)
     create_date = db.Column(db.DateTime(), nullable=False, default=datetime.now())
 
-    buildings = db.relationship('Buildings', backref='colony')
+    buildings = db.relationship('Buildings', backref='colony', uselist=False)
 
     def __str__(self):
         return self.name

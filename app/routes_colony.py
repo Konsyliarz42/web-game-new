@@ -48,4 +48,6 @@ def status(colony_id):
     if not user or not colony:
         return page_not_found() # User not found or colony not found
 
-    return response('colony/colony.html', 200, current_colony=colony)
+    buildings = colony.buildings.get_buildings()
+
+    return response('colony/colony.html', current_colony=colony, buildings=buildings)
