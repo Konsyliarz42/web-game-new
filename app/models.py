@@ -44,6 +44,11 @@ class Buildings(db.Model):
     id = db.Column(db.Integer(), primary_key=True, nullable=False)
     colony_id = db.Column(db.Integer(), db.ForeignKey('colony.id'))
 
+    houses = db.Column(db.Integer(), default=1)
+    sawmill = db.Column(db.Integer(), default=0)
+    quarry = db.Column(db.Integer(), default=0)
+    farm = db.Column(db.Integer(), default=0)
+
     def __repr__(self):
         return f"Buildings for {self.colony_id} colony"
 
@@ -57,7 +62,7 @@ class Colony(db.Model):
     name = db.Column(db.String(128), nullable=False, unique=True)
     create_date = db.Column(db.DateTime(), nullable=False, default=datetime.now())
 
-    #buildings = db.relationship('Buildings')
+    buildings = db.relationship('Buildings', backref='colony')
 
     def __str__(self):
         return self.name

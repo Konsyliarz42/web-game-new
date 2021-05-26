@@ -1,9 +1,9 @@
-from flask import Blueprint, request
-from flask_login import login_user, logout_user, login_required
+from flask import Blueprint, request, redirect, url_for
+from flask_login import login_required
 
-from .models import db, User, Colony
+from .models import db, Colony, Buildings
 from .forms import CreateColonyForm
-from .routes_functions import response, get_user, page_not_found, unauthorized
+from .routes_functions import response, get_user, page_not_found, unauthorized, get_colony
 
 bp = Blueprint('colonies', __name__,  url_prefix='/colony')
 
@@ -25,11 +25,27 @@ def create():
                 name=form.name.data,
                 owner_id=user.id
             )
-
+            buildings = Buildings(colony=colony)
+            
             db.session.add(colony)
+            db.session.add(buildings)
             db.session.commit()
-            code = 201
+    
+            return redirect(url_for('users.profile', user_id=user.id))
         else:
             code = 400
 
     return response('colony/colony_create.html', code, form=form)
+
+
+@login_required
+@bp.route('/<int:colony_id>/status', methods=['GET'])
+def status(colony_id):
+
+    user = get_user()
+    colony = get_colony(colony_id)
+
+    if not user or not colony:
+        return page_not_found() # User not found or colony not found
+
+    return response('colony/colony.html', 200, current_colony=colony)

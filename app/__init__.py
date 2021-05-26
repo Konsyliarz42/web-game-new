@@ -1,5 +1,4 @@
 from flask import Flask
-from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_admin import Admin
 
@@ -13,8 +12,8 @@ app.config.from_object(Config)
 
 # Create database
 models.db.init_app(app)
-migrate = Migrate(app, models.db)
 app.app_context().push()
+models.db.create_all()
 
 # Register blueprints
 from . import routes, routes_colony, routes_user # I know that it should not be in that place, but if i move it on the top "No application found".

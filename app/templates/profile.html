@@ -23,11 +23,11 @@
                         <input type="hidden" name="id" value="{{colony.id}}">
                         <input type="hidden" name="form" value="delete_colony">
                         <button>Zniszcz kolonię</button>
+                        <a href="/colony/{{colony.id}}/status"><button type="button">Przejdź do kolonii</button></a>
                     </form>
                 </li>
             {% else %}
                 <p>Brak <a href="/colony/create"><button>Utwórz kolonie</button></a></p>
-                
             {% endfor %}
         </ul>
     </p>

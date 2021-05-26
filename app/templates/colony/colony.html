@@ -1,11 +1,29 @@
 {% extends 'index.html' %}
 {% from '_form_field.html' import form_field %}
 
-{% block title %}{{ colony.name }}
+{% block title %}{{ current_colony.name }}
 {% endblock %}
 
 {% block content %}
 
     <h1>Kolonia</h1>
+    <p>Nazwa: {{ current_colony.name }}</p>
+    <p>ID: {{ current_colony.id }}</p>
+    <p>
+        Właściciel: {{ current_user.username }}
+        <a href="/user/{{current_user.id}}/profile">
+            <button>Przejdź do profilu</button>
+        </a>
+    </p>
+    <p>
+        Budynki:
+        <ul>
+            {% for building in current_colony.buildings %}
+                <li>{{ building }}</li>
+            {% else %}
+                <p>Brak</p>
+            {% endfor %}
+        </ul>
+    </p>
 
 {% endblock %}

@@ -17,6 +17,26 @@ def get_user(user_id=None):
     return user
 
 
+def get_colony(colony_id=None):
+    """Return the current user's first colony object or None.\t
+    If colony_id exist in colonies of the user return colony."""
+     
+    user = current_user or None
+
+    if not user:
+        return None
+
+    colonies = user.colonies
+
+    if colony_id:
+        colonies = [c for c in colonies if c.id == colony_id]
+
+    if not colonies:
+        return None
+            
+    return colonies[0]
+
+
 def response(template, http_code=200, **context):
     """Return render template with the default and additional context.\n
     Default context:
