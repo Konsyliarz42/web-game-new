@@ -16,10 +16,10 @@ app.app_context().push()
 models.db.create_all()
 
 # Register blueprints
-from . import routes, routes_colony, routes_user # I know that it should not be in that place, but if i move it on the top "No application found".
-app.register_blueprint(routes.bp)
-app.register_blueprint(routes_colony.bp)
-app.register_blueprint(routes_user.bp)
+from .blueprints import app as bp_app, colonies, users # I know that it should not be in that place, but if i move it on the top "No application found".
+app.register_blueprint(bp_app.bp)
+app.register_blueprint(colonies.bp)
+app.register_blueprint(users.bp)
 
 # Register error pages
 app.register_error_handler(404, routes_functions.page_not_found)

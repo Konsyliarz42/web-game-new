@@ -1,37 +1,9 @@
-class Building():
-
-    def __init__(self, level):
-
-        self.level = level
-        self.name = None
-        self.production = dict()
-        self.required_materials = dict()
-        self.required_buildings = dict()
-
-    
-    def remove_trash(self):
-
-        # Remove from production all products that are not produced
-        for key, value in self.production.copy().items():
-            if value == 0:
-                self.production.pop(key)
-
-        # Remove all building below level 1 form required buildings
-        for key, value in self.required_buildings.copy().items():
-            if value <= 0:
-                self.required_buildings.pop(key)
-
-        # Remove all materials that are not used to build
-        for key, value in self.required_materials.copy().items():
-            if value <= 0:
-                self.required_materials.pop(key)
-
-#----------------------------------------------------------------
+from .building import Building
 
 class Houses(Building):
 
-    def __init__(self, level):
-        super().__init__(level)
+    def __init__(self, level, start_build):
+        super().__init__(level, start_build)
 
         self.name = 'Houses'
         self.production['food'] = 10*self.level
@@ -46,10 +18,11 @@ class Houses(Building):
         self.remove_trash()
 
 
+#----------------------------------------------------------------
 class Sawmill(Building):
 
-    def __init__(self, level):
-        super().__init__(level)
+    def __init__(self, level, start_build):
+        super().__init__(level, start_build)
 
         self.name = 'Sawmill'
         self.production = {
@@ -66,10 +39,11 @@ class Sawmill(Building):
         self.remove_trash()
 
 
+#----------------------------------------------------------------
 class Quarry(Building):
 
-    def __init__(self, level):
-        super().__init__(level)
+    def __init__(self, level, start_build):
+        super().__init__(level, start_build)
 
         self.name = 'Quarry'
         self.production = {
@@ -87,10 +61,11 @@ class Quarry(Building):
         self.remove_trash()
 
 
+#----------------------------------------------------------------
 class Farm(Building):
 
-    def __init__(self, level):
-        super().__init__(level)
+    def __init__(self, level, start_build):
+        super().__init__(level, start_build)
 
         self.name = 'Farm'
         self.production = {

@@ -1,9 +1,9 @@
 from flask import Blueprint, request, redirect, url_for
 from flask_login import login_required
 
-from .models import db, Colony, Buildings
-from .forms import CreateColonyForm
-from .routes_functions import response, get_user, page_not_found, unauthorized, get_colony
+from ..models import db, Colony, Buildings
+from ..forms import CreateColonyForm
+from ..routes_functions import response, get_user, page_not_found, unauthorized, get_colony
 
 bp = Blueprint('colonies', __name__,  url_prefix='/colony')
 

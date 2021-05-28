@@ -1,5 +1,4 @@
 {% extends 'index.html' %}
-{% from '_form_field.html' import form_field %}
 
 {% block title %}{{ current_colony.name }}
 {% endblock %}
@@ -54,6 +53,15 @@
                             </ul>
                         </p>
                     {% endif %}
+
+                    <p>
+                        {% set time = building.time_build|string %}
+                        {% if time.rfind('.') > -1 %}
+                            {% set time = time[:time.rfind('.')] %}
+                        {% endif %}
+                        Czas budowy: {{ time }}
+                        Zakończenie budowy: {{ building.end_build }}
+                    </p>
                     
                 </li>
             {% else %}
