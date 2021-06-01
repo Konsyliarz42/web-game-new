@@ -1,0 +1,43 @@
+{% extends 'index.html' %}
+{% from 'macros/_buildings_cards.html' import building_card_simple %}
+
+{% block title %}{{ current_colony.name }}
+{% endblock %}
+
+{% block content %}
+
+    <h1>Kolonia {{ current_colony.name }}</h1>
+    <p>ID: {{ current_colony.id }}</p>
+    <p>
+        Właściciel: {{ current_user.username }}
+        <a href="/user/{{current_user.id}}/profile">
+            <button>Przejdź do profilu</button>
+        </a>
+    </p>
+
+    <div>
+        <p>
+            Budynki:
+            <a href="/colony/{{current_colony.id}}/constructions"><button type="button">Panel budowniczego</button></a>
+        </p>
+
+        <div style="overflow-y: scroll; border: 1px solid; height: 512px; width: min-content">
+            {% for raw_name, building in buildings.items() %}
+                {{ building_card_simple(building) }}
+            {% else %}
+                <h3>Brak</h3>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div>
+        <p>Materiały:</p>
+
+        <ul>
+            {% for raw_name, resource in resources.items() %}
+                <li>{{ raw_name }}: {{ resource[0] }} | {{ resource[1] }}/h</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+{% endblock %}

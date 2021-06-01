@@ -1,8 +1,8 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask_login import LoginManager
 from flask_admin import Admin
 
-from . import models, routes_functions
+from . import models
 from .admin import AdminIndex, admin_views
 from config import Config
 
@@ -22,8 +22,8 @@ app.register_blueprint(colonies.bp)
 app.register_blueprint(users.bp)
 
 # Register error pages
-app.register_error_handler(404, routes_functions.page_not_found)
-app.register_error_handler(401, routes_functions.unauthorized)
+app.register_error_handler(401, lambda e: render_template('errors/401.html'))
+app.register_error_handler(404, lambda e: render_template('errors/404.html'))
 
 # Initialize administration and login mechanism
 login_manager = LoginManager(app)

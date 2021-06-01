@@ -77,3 +77,4 @@ def admin_views(admin):
     admin.add_view(AdminModel(models.User, models.db.session))
     admin.add_view(AdminModel(models.Colony, models.db.session))
     admin.add_view(AdminModel(models.Buildings, models.db.session))
+    admin.add_view(AdminModel(models.Resources, models.db.session))

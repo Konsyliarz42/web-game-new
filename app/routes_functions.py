@@ -48,15 +48,3 @@ def response(template, http_code=200, **context):
     variables = {**default_context, **context}
 
     return render_template(template, **variables), http_code
-
-
-def page_not_found(e=None):
-    """Return render '404.html' template with 404 code."""
-
-    return render_template('errors/404.html'), 404
-
-
-def unauthorized(e=None):
-    """Return render '401.html' template with 401 code."""
-
-    return render_template('errors/401.html'), 401

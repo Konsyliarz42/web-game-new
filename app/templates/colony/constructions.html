@@ -1,0 +1,20 @@
+{% extends 'index.html' %}
+{% from 'macros/_buildings_cards.html' import building_card %}
+
+{% block title %}{{ current_colony.name }}
+{% endblock %}
+
+{% block content %}
+
+    <a href="/colony/{{current_colony.id}}/status"><button type="button">Powrót do kolonii</button></a>
+    <br>
+
+    <h1>Panel budowniczego</h1>
+
+    <div style="display: flex; flex-flow: wrap row;">
+        {% for raw_name, building in buildings.items() %}
+            {{ building_card(building[0], building[1]) }}
+        {% endfor %}
+    </div>
+
+{% endblock %}

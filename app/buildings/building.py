@@ -25,7 +25,7 @@ def number_to_time(number):
 
 class Building():
 
-    def __init__(self, level, start_build):
+    def __init__(self, level, start_build=None):
 
         self.level = level
         self.name = None

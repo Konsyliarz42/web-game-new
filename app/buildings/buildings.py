@@ -2,7 +2,7 @@ from .building import Building
 
 class Houses(Building):
 
-    def __init__(self, level, start_build):
+    def __init__(self, level, start_build=None):
         super().__init__(level, start_build)
 
         self.name = 'Houses'
@@ -12,7 +12,7 @@ class Houses(Building):
             'stone': 250 + 125*self.level
         }
         self.required_buildings = {
-            'houses': self.level,
+            'houses': self.level - 1,
             'sawmill': self.level
         }
         self.remove_trash()
@@ -21,7 +21,7 @@ class Houses(Building):
 #----------------------------------------------------------------
 class Sawmill(Building):
 
-    def __init__(self, level, start_build):
+    def __init__(self, level, start_build=None):
         super().__init__(level, start_build)
 
         self.name = 'Sawmill'
@@ -34,7 +34,7 @@ class Sawmill(Building):
             'stone': 50 + 25*self.level
         }
         self.required_buildings = {
-            'houses': 1 - self.level
+            'houses': self.level
         }
         self.remove_trash()
 
@@ -42,7 +42,7 @@ class Sawmill(Building):
 #----------------------------------------------------------------
 class Quarry(Building):
 
-    def __init__(self, level, start_build):
+    def __init__(self, level, start_build=None):
         super().__init__(level, start_build)
 
         self.name = 'Quarry'
@@ -55,7 +55,7 @@ class Quarry(Building):
             'stone': 100 + 50*self.level
         }
         self.required_buildings = {
-            'houses': 1 - self.level,
+            'houses': self.level,
             'sawmill': 1 - self.level
         }
         self.remove_trash()
@@ -64,7 +64,7 @@ class Quarry(Building):
 #----------------------------------------------------------------
 class Farm(Building):
 
-    def __init__(self, level, start_build):
+    def __init__(self, level, start_build=None):
         super().__init__(level, start_build)
 
         self.name = 'Farm'
@@ -76,7 +76,7 @@ class Farm(Building):
             'stone': 200 + 100*self.level
         }
         self.required_buildings = {
-            'houses': 1 - self.level,
+            'houses': self.level,
             'sawmill': self.level - 2,
             'quarry': self.level - 3,
         }

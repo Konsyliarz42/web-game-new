@@ -1,9 +1,9 @@
-from flask import Blueprint, request, redirect, url_for
+from flask import Blueprint, request, redirect, url_for, abort
 from flask_login import login_required
 
-from ..models import db, Colony, Buildings
+from ..models import db, Colony, Buildings, Resources
 from ..forms import CreateColonyForm
-from ..routes_functions import response, get_user, page_not_found, unauthorized, get_colony
+from ..routes_functions import response, get_user, get_colony
 
 bp = Blueprint('colonies', __name__,  url_prefix='/colony')
 
@@ -15,7 +15,7 @@ def create():
     code = 200
 
     if not user:
-        return page_not_found() # User not found
+        return abort(404) # User not found
 
     form = CreateColonyForm()
 
@@ -26,16 +26,18 @@ def create():
                 owner_id=user.id
             )
             buildings = Buildings(colony=colony)
+            resources = Resources(colony=colony)
             
             db.session.add(colony)
             db.session.add(buildings)
+            db.session.add(resources)
             db.session.commit()
     
             return redirect(url_for('users.profile', user_id=user.id))
         else:
             code = 400
 
-    return response('colony/colony_create.html', code, form=form)
+    return response('colony/create.html', code, form=form)
 
 
 @login_required
@@ -46,8 +48,24 @@ def status(colony_id):
     colony = get_colony(colony_id)
 
     if not user or not colony:
-        return page_not_found() # User not found or colony not found
+        return abort(404) # User not found or colony not found
 
     buildings = colony.buildings.get_buildings()
+    resources = colony.resources.get_resources()
 
-    return response('colony/colony.html', current_colony=colony, buildings=buildings)
+    return response('colony/status.html', current_colony=colony, buildings=buildings, resources=resources)
+
+
+@login_required
+@bp.route('/<int:colony_id>/constructions', methods=['GET'])
+def constructions(colony_id):
+
+    user = get_user()
+    colony = get_colony(colony_id)
+
+    if not user or not colony:
+        return abort(404) # User not found or colony not found
+
+    buildings = colony.buildings.get_next_buildings()
+
+    return response('colony/constructions.html', current_colony=colony, buildings=buildings)

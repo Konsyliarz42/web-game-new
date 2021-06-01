@@ -1,0 +1,86 @@
+{% from 'macros/_remove_milliseconds.html' import remove_milliseconds %}
+{% from 'macros/_errors.html' import error %}
+
+{% macro building_card(building, errors) %}
+
+    <div style="border: 1px solid; margin: 8px; padding: 8px; width: calc(100%/4.4)">
+        <div>
+            <h1 style="margin: 0px;">{{ building.name }}</h1>
+            <span>Poziom: {{ building.level }}</span>
+        </div>
+
+        <br>
+
+        <div>
+
+            <div style="margin: 8px; padding: 4px; border: 1px solid">
+                <strong>Produkcja:</strong>
+
+                <ul id="{{building.name}}-production" style="margin-top: 0px;">
+                    {% for product, amount in building.production.items() %}
+                        <li style="margin: 0;">{{ product }}: {{ amount }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div style="margin: 8px; padding: 4px; border: 1px solid">
+                <strong>Wymagane materiały:</strong>
+
+                <ul id="{{building.name}}-required_materials" style="margin-top: 0px;">
+                    {% for product, amount in building.required_materials.items() %}
+                        <li>{{ product }}: {{ amount }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div style="margin: 8px; padding: 4px; border: 1px solid">
+                <strong>Wymagane Budynki:</strong>
+
+                <ul id="{{building.name}}-required_buildings" style="margin-top: 0px;">
+                    {% for construction, level in building.required_buildings.items() %}
+                        <li>{{ construction }} ({{ level }} poziom)</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div style="margin: 8px; padding: 4px; border: 1px solid;">
+                <strong>Czas budowy:</strong>
+                {{ remove_milliseconds(building.time_build) }}
+            </div>
+
+            <ul style="margin: 8px; border: 1px solid;">
+                {% for key, arg in errors %}
+                    <li style="padding: 4px;">{{ error(key, arg) }}</li>
+                {% endfor %}
+            </ul>
+
+        </div>
+    </div>
+
+{% endmacro %}
+
+
+{% macro building_card_simple(building) %}
+
+    <div style="border: 1px solid; margin: 8px; padding: 8px; width: 256px; height: min-content;">
+        <div>
+            <h1 style="margin: 0px;">{{ building.name }}</h1>
+            <span>Poziom: {{ building.level }}</span>
+        </div>
+
+        <br>
+
+        {% if building.production %}
+            <div>
+                <strong>Produkcja:</strong>
+
+                <ul id="{{building.name}}-production" style="margin-top: 0px;">
+                    {% for product, amount in building.production.items() %}
+                        <li style="margin: 0;">{{ product }}: {{ amount }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+    </div>
+
+{% endmacro %}

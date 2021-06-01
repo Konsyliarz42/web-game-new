@@ -1,0 +1,9 @@
+{% macro error(key, arg) %}
+
+    {% if key == 'required_building' %}
+        Wymagany budynek {{ arg }} na wyższym poziomie.
+    {% elif key == 'required_material' %}
+        Brakuje materiału {{ arg }}.
+    {% endif %}
+
+{% endmacro %}

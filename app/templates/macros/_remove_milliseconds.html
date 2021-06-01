@@ -1,0 +1,11 @@
+{% macro remove_milliseconds(object) %}
+
+    {% set object = object|string %}
+
+    {% if object.rfind('.') > -1 %}
+        {% set object = object[:object.rfind('.')] %}
+    {% endif %}
+
+    {{ object }}
+
+{% endmacro %}

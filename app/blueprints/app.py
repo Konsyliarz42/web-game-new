@@ -1,9 +1,9 @@
-from flask import Blueprint, request
-from flask_login import login_user, logout_user, login_required
+from flask import Blueprint, request, abort
+from flask_login import login_user, logout_user
 
-from ..models import db, User, Colony
+from ..models import db, User
 from ..forms import RegisterForm, LoginForm
-from ..routes_functions import response, get_user, page_not_found, unauthorized
+from ..routes_functions import response
 
 bp = Blueprint('app', __name__)
 

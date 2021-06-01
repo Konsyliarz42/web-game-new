@@ -1,8 +1,8 @@
-from flask import Blueprint, request, redirect, url_for
-from flask_login import login_user, logout_user, login_required
+from flask import Blueprint, request, redirect, url_for, abort
+from flask_login import login_required
 
 from ..models import db, User, Colony
-from ..routes_functions import response, get_user, page_not_found, unauthorized
+from ..routes_functions import response, get_user
 
 bp = Blueprint('users', __name__,  url_prefix='/user/<int:user_id>')
 
@@ -14,9 +14,9 @@ def profile(user_id):
     code = 200
 
     if not user:
-        return page_not_found() # User not found
+        return abort(404) # User not found
     elif user != get_user():
-        return unauthorized()
+        return abort(401)
 
     if request.method == 'POST':
         form_name = request.form['form']
