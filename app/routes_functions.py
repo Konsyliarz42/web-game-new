@@ -1,4 +1,4 @@
-from flask import render_template
+from flask import render_template, request
 from flask_login import current_user
 from .models import User, Colony
 
@@ -40,11 +40,18 @@ def get_colony(colony_id=None):
 def response(template, http_code=200, **context):
     """Return render template with the default and additional context.\n
     Default context:
-    - current_user"""
+    - current_user
+    - current_colony (for colonies blueprint)"""
 
     default_context = {
         'current_user': get_user()
     }
+
+    # Add current colony to the default context
+    if 'colony/<int:colony_id>' in str(request.url_rule):
+        colony_id = request.view_args['colony_id']
+        default_context['current_colony'] = get_colony(colony_id)
+
     variables = {**default_context, **context}
 
     return render_template(template, **variables), http_code

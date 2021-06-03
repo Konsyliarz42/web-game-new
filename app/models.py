@@ -16,7 +16,7 @@ class User(db.Model, UserMixin):
     admin = db.Column(db.Boolean(), nullable=False, default=False)
     register_date = db.Column(db.DateTime(), nullable=False, default=datetime.now())
 
-    colonies = db.relationship('Colony', backref='user', lazy='dynamic')
+    colonies = db.relationship('Colony', backref='owner', lazy='dynamic')
 
     def __str__(self):
         return self.username
@@ -56,7 +56,7 @@ class Resources(db.Model):
     food_production = db.Column(db.Float(), default=0.0)
 
     def __repr__(self):
-        return f"Resources for {self.colony_id} colony"
+        return f"<Resources for {self.colony_id} colony>"
 
     #----------------------------------------------------------------
 
@@ -75,29 +75,22 @@ class Buildings(db.Model):
     colony_id = db.Column(db.Integer(), db.ForeignKey('colony.id'))
 
     houses = db.Column(db.Integer(), default=1)
-    houses_start_build = db.Column(db.DateTime())
-
     sawmill = db.Column(db.Integer(), default=0)
-    sawmill_start_build = db.Column(db.DateTime())
-
     quarry = db.Column(db.Integer(), default=0)
-    quarry_start_build = db.Column(db.DateTime())
-
     farm = db.Column(db.Integer(), default=0)
-    farm_start_build = db.Column(db.DateTime())
 
     def __repr__(self):
-        return f"Buildings for {self.colony_id} colony"
+        return f"<Buildings for {self.colony_id} colony>"
 
     #----------------------------------------------------------------
 
     def get_buildings(self):
 
         return {
-            'houses': b.Houses(self.houses, self.houses_start_build),
-            'sawmill': b.Sawmill(self.sawmill, self.sawmill_start_build),
-            'quarry': b.Quarry(self.quarry, self.quarry_start_build),
-            'farm': b.Farm(self.farm, self.farm_start_build)
+            'houses': b.Houses(self.houses),
+            'sawmill': b.Sawmill(self.sawmill),
+            'quarry': b.Quarry(self.quarry),
+            'farm': b.Farm(self.farm)
         }
 
     
@@ -105,6 +98,8 @@ class Buildings(db.Model):
 
         current_buildings = self.get_buildings()
         current_materials = self.colony.resources.get_resources()
+        construction_list = self.colony.construction_list
+        construction_limit = 3
         buildings = {
             'houses': b.Houses(self.houses + 1),
             'sawmill': b.Sawmill(self.sawmill + 1),
@@ -124,6 +119,12 @@ class Buildings(db.Model):
             for name, required_value in building.required_materials.items():
                 if current_materials[name][0] < required_value:
                     errors.append(('required_material', name))
+
+            if building in construction_list:
+                errors.append(('already_construct', None))
+
+            if len(construction_list) >= construction_limit:
+                errors.append(('construction_limit', None))
 
             #print(key, errors)
             buildings[key] = (building, errors)
@@ -151,3 +152,31 @@ class Colony(db.Model):
         return f"<Colony: {self.name} | ID: {self.id}>"
     
     #----------------------------------------------------------------
+
+    def start_construction(self, construction):
+
+        if self.construction_list:
+            construction.start_build = self.construction_list[-1].end_build
+        else:
+            construction.start_build = datetime.today()
+
+        for material, value in construction.required_materials.items():
+            value = getattr(self.resources, material) - value
+            setattr(self.resources, material, value)
+
+        self.construction_list = self.construction_list + [construction]
+        db.session.add(self.resources)
+
+
+    def update(self):
+
+        _construction_list = self.construction_list.copy()
+
+        while _construction_list and datetime.today() >= _construction_list[0].end_build:
+            key = _construction_list[0].__class__.__name__.lower()
+            setattr(self.buildings, key, _construction_list[0].level)
+            _construction_list.pop(0)
+        
+        self.construction_list = _construction_list
+        db.session.add(self)
+        db.session.commit()

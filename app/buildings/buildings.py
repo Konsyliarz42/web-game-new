@@ -13,7 +13,8 @@ class Houses(Building):
         }
         self.required_buildings = {
             'houses': self.level - 1,
-            'sawmill': self.level
+            'sawmill': self.level - 1,
+            'quarry': self.level - 2
         }
         self.remove_trash()
 
@@ -69,7 +70,7 @@ class Farm(Building):
 
         self.name = 'Farm'
         self.production = {
-            'food': 500*self.level
+            'food': 200*self.level
         }
         self.required_materials = {
             'wood': 200 + 100*self.level,

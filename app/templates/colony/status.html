@@ -1,5 +1,6 @@
 {% extends 'index.html' %}
 {% from 'macros/_buildings_cards.html' import building_card_simple %}
+{% from 'macros/_remove_milliseconds.html' import remove_milliseconds %}
 
 {% block title %}{{ current_colony.name }}
 {% endblock %}
@@ -9,11 +10,27 @@
     <h1>Kolonia {{ current_colony.name }}</h1>
     <p>ID: {{ current_colony.id }}</p>
     <p>
-        Właściciel: {{ current_user.username }}
-        <a href="/user/{{current_user.id}}/profile">
+        Właściciel: {{ current_colony.owner.username }}
+        <a href="/user/{{current_colony.owner.id}}/profile">
             <button>Przejdź do profilu</button>
         </a>
     </p>
+
+    <div>
+        <p>Kolejka budowy:</p>
+
+        <ol>
+            {% for building in current_colony.construction_list %}
+                <li>
+                    {{ building.name }} ({{ building.level }} lvl):<br>
+                    {{ remove_milliseconds(building.start_build) }} - {{ remove_milliseconds(building.end_build) }}
+                    </li>
+            {% else %}
+                <p>Brak</p>
+            {% endfor %}
+        </ol>
+    </div>
+    
 
     <div>
         <p>
@@ -21,7 +38,7 @@
             <a href="/colony/{{current_colony.id}}/constructions"><button type="button">Panel budowniczego</button></a>
         </p>
 
-        <div style="overflow-y: scroll; border: 1px solid; height: 512px; width: min-content">
+        <div style="overflow-y: scroll; border: 1px solid; height: 512px; width: 1024px; display: flex; flex-flow: wrap row;">
             {% for raw_name, building in buildings.items() %}
                 {{ building_card_simple(building) }}
             {% else %}

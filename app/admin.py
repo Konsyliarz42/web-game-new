@@ -31,7 +31,7 @@ def create_first_admin():
     You have enter username (3-128 marks) and password (8-256 marks)."""
 
     username, email, password = None, None, None
-    print("Application does not have administrators!\nCreate new Admin:")
+    print("Application does not have administrators!\n\nCreate new Admin:")
 
     # Input and validation of username
     while not username:

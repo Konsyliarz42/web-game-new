@@ -1,5 +1,6 @@
 from flask import Blueprint, request, redirect, url_for, abort
 from flask_login import login_required
+from datetime import datetime
 
 from ..models import db, Colony, Buildings, Resources
 from ..forms import CreateColonyForm
@@ -50,14 +51,15 @@ def status(colony_id):
     if not user or not colony:
         return abort(404) # User not found or colony not found
 
+    colony.update()
     buildings = colony.buildings.get_buildings()
     resources = colony.resources.get_resources()
 
-    return response('colony/status.html', current_colony=colony, buildings=buildings, resources=resources)
+    return response('colony/status.html', buildings=buildings, resources=resources)
 
 
 @login_required
-@bp.route('/<int:colony_id>/constructions', methods=['GET'])
+@bp.route('/<int:colony_id>/constructions', methods=['GET', 'POST'])
 def constructions(colony_id):
 
     user = get_user()
@@ -66,6 +68,17 @@ def constructions(colony_id):
     if not user or not colony:
         return abort(404) # User not found or colony not found
 
+    colony.update()
     buildings = colony.buildings.get_next_buildings()
 
-    return response('colony/constructions.html', current_colony=colony, buildings=buildings)
+    if request.method == 'POST':
+        construction, errors = buildings[request.form['construction']]
+        
+        if not errors:
+            colony.start_construction(construction)
+            db.session.add(colony)
+            db.session.commit()
+
+            buildings = colony.buildings.get_next_buildings()
+
+    return response('colony/constructions.html', buildings=buildings)

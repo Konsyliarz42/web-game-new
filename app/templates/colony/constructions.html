@@ -13,7 +13,7 @@
 
     <div style="display: flex; flex-flow: wrap row;">
         {% for raw_name, building in buildings.items() %}
-            {{ building_card(building[0], building[1]) }}
+            {{ building_card(raw_name, building[0], building[1]) }}
         {% endfor %}
     </div>
 

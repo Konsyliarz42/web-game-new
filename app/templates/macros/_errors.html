@@ -4,6 +4,10 @@
         Wymagany budynek {{ arg }} na wyższym poziomie.
     {% elif key == 'required_material' %}
         Brakuje materiału {{ arg }}.
+    {% elif key == 'already_construct' %}
+        W trakcie rozbudowy.
+    {% elif key == 'construction_limit' %}
+        Osiągnięto limit budowy.
     {% endif %}
 
 {% endmacro %}

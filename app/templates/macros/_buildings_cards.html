@@ -1,7 +1,7 @@
 {% from 'macros/_remove_milliseconds.html' import remove_milliseconds %}
 {% from 'macros/_errors.html' import error %}
 
-{% macro building_card(building, errors) %}
+{% macro building_card(name, building, errors) %}
 
     <div style="border: 1px solid; margin: 8px; padding: 8px; width: calc(100%/4.4)">
         <div>
@@ -48,11 +48,33 @@
                 {{ remove_milliseconds(building.time_build) }}
             </div>
 
-            <ul style="margin: 8px; border: 1px solid;">
-                {% for key, arg in errors %}
-                    <li style="padding: 4px;">{{ error(key, arg) }}</li>
-                {% endfor %}
-            </ul>
+            <div style="margin: 8px; border: 1px solid;">
+                {% if errors %}
+                    <button disabled>Nie spełniono wymagań</button>
+
+                    <ul>
+                        {% for key, arg in errors %}
+                            <li style="padding: 4px;">{{ error(key, arg) }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <form method="POST">
+                        <input type="hidden" name="construction" value="{{ name }}">
+                        
+                        {% if building.level <= 1 %}
+                            <button>Rozpocznij budowę</button>
+                        {% else %}
+                            <button>Rozbuduj</button>
+                        {% endif %}
+                    </form>  
+                {% endif %}
+            </div>
+
+            
+
+            
+
+            
 
         </div>
     </div>
@@ -62,7 +84,7 @@
 
 {% macro building_card_simple(building) %}
 
-    <div style="border: 1px solid; margin: 8px; padding: 8px; width: 256px; height: min-content;">
+    <div style="border: 1px solid; margin: 8px; padding: 8px; width: 256px;">
         <div>
             <h1 style="margin: 0px;">{{ building.name }}</h1>
             <span>Poziom: {{ building.level }}</span>

@@ -23,6 +23,24 @@ def number_to_time(number):
     )
 
 
+def timedelta_dict(td):
+    """Return dict with days, hours,\t
+    minutes, seconds and milliseconds."""
+
+    hours = td.seconds//3600
+    minutes = td.seconds//60 - hours*60
+    seconds = td.seconds - minutes*60 - hours*3600
+    milliseconds = td.microseconds//1000
+
+    return {
+        'days': td.days,
+        'hours': hours,
+        'minutes': minutes,
+        'seconds': seconds,
+        'milliseconds': milliseconds
+    }
+
+
 class Building():
 
     def __init__(self, level, start_build=None):
@@ -49,7 +67,16 @@ class Building():
         else:
             return datetime.today() + self.time_build
 
-    
+
+    def __str__(self):
+        return f"{self.name} ({self.level} lvl)"
+
+
+    def __eq__(self, other):
+        return self.name == other.name and self.level == other.level
+
+    #----------------------------------------------------------------
+
     def remove_trash(self):
 
         # Remove from production all products that are not produced
@@ -66,3 +93,17 @@ class Building():
         for key, value in self.required_materials.copy().items():
             if value <= 0:
                 self.required_materials.pop(key)
+
+    
+    def get_json(self):
+
+        return {
+            'level': self.level,
+            'name': self.name,
+            'production': self.production,
+            'required_materials': self.required_materials,
+            'required_buildings': self.required_buildings,
+            'start_build': self.start_build,
+            'time_build': timedelta_dict(self.time_build),
+            'end_build': self.end_build.__str__()
+        }
