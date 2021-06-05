@@ -8,6 +8,27 @@ from ..routes_functions import response, get_user, get_colony
 
 bp = Blueprint('colonies', __name__,  url_prefix='/colony')
 
+def check_request(colony_id):
+    """Check if user or colony exist.\n
+    Return three objects: user, colony and result.\t
+    Result is abort function when some not exist or user is not authorized.\t
+    If colony exist run update method.\t
+    After call add condition: if result: return result!"""
+
+    user = get_user()
+    colony = get_colony(colony_id)
+    result = None
+
+    if not user or not colony:
+        result = abort(404)
+    elif colony not in user.colonies:
+        result = abort(401)
+    else:
+        colony.update()
+
+    return user, colony, result
+
+
 @login_required
 @bp.route('/create', methods=['GET', 'POST'])
 def create():
@@ -20,18 +41,14 @@ def create():
 
     form = CreateColonyForm()
 
+    # Create colony
     if request.method == 'POST':
         if form.validate_on_submit():
             colony = Colony(
                 name=form.name.data,
                 owner_id=user.id
             )
-            buildings = Buildings(colony=colony)
-            resources = Resources(colony=colony)
-            
             db.session.add(colony)
-            db.session.add(buildings)
-            db.session.add(resources)
             db.session.commit()
     
             return redirect(url_for('users.profile', user_id=user.id))
@@ -42,18 +59,26 @@ def create():
 
 
 @login_required
-@bp.route('/<int:colony_id>/status', methods=['GET'])
+@bp.route('/<int:colony_id>/status', methods=['GET', 'POST'])
 def status(colony_id):
 
-    user = get_user()
-    colony = get_colony(colony_id)
+    user, colony, result = check_request(colony_id)
 
-    if not user or not colony:
-        return abort(404) # User not found or colony not found
+    if result:
+        return result
 
-    colony.update()
     buildings = colony.buildings.get_buildings()
     resources = colony.resources.get_resources()
+
+    # Abort build
+    if request.method == 'POST':
+        _buildings = colony.buildings.get_next_buildings()
+        construction = _buildings[request.form['abort']][0]
+
+        if construction in colony.construction_list:
+            colony.abort_construction(construction)
+            db.session.add(colony)
+            db.session.commit()
 
     return response('colony/status.html', buildings=buildings, resources=resources)
 
@@ -62,15 +87,14 @@ def status(colony_id):
 @bp.route('/<int:colony_id>/constructions', methods=['GET', 'POST'])
 def constructions(colony_id):
 
-    user = get_user()
-    colony = get_colony(colony_id)
+    user, colony, result = check_request(colony_id)
 
-    if not user or not colony:
-        return abort(404) # User not found or colony not found
+    if result:
+        return result
 
-    colony.update()
     buildings = colony.buildings.get_next_buildings()
 
+    # Start build
     if request.method == 'POST':
         construction, errors = buildings[request.form['construction']]
         

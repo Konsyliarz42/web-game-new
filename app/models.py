@@ -1,7 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from .buildings import buildings as b
 
@@ -61,6 +61,9 @@ class Resources(db.Model):
     #----------------------------------------------------------------
 
     def get_resources(self):
+        """Redturn dictionary with tuples of resources.\n
+        First position in tuple is rounded current amount and\t
+        second position is current production of resource."""
 
         return {
             'wood': (round(self.wood), self.wood_production),
@@ -85,6 +88,7 @@ class Buildings(db.Model):
     #----------------------------------------------------------------
 
     def get_buildings(self):
+        """Return dictionary with object of all buildings."""
 
         return {
             'houses': b.Houses(self.houses),
@@ -95,6 +99,15 @@ class Buildings(db.Model):
 
     
     def get_next_buildings(self):
+        """Return dictionary with tuples of next level buildings.\n
+        First position of the tuple is object of buildings and\t
+        second position are errors in building.\n
+        Errors are tuple with key and optional argument why building can't build.\n
+        Errors:
+        - required_building - (key, name of required building)
+        - required_material - (key, name of required material)
+        - already_construct - (key, None)
+        - construction_limit - (key, None)"""
 
         current_buildings = self.get_buildings()
         current_materials = self.colony.resources.get_resources()
@@ -138,6 +151,7 @@ class Colony(db.Model):
     owner_id = db.Column(db.Integer(), db.ForeignKey('user.id'))
     name = db.Column(db.String(128), nullable=False, unique=True)
     create_date = db.Column(db.DateTime(), nullable=False, default=datetime.now())
+    last_update = db.Column(db.DateTime(), nullable=False, default=datetime.now())
     
     construction_list = db.Column(db.PickleType(), default=list())
 
@@ -150,10 +164,23 @@ class Colony(db.Model):
 
     def __repr__(self):
         return f"<Colony: {self.name} | ID: {self.id}>"
+
+    
+    def __init__(self, name, owner_id):
+
+        self.name = name
+        self.owner_id = owner_id
+
+        buildings = Buildings(colony=self)
+        resources = Resources(colony=self)
+
+        db.session.add(buildings)
+        db.session.add(resources)
     
     #----------------------------------------------------------------
 
     def start_construction(self, construction):
+        """Add building to construction list."""
 
         if self.construction_list:
             construction.start_build = self.construction_list[-1].end_build
@@ -167,9 +194,44 @@ class Colony(db.Model):
         self.construction_list = self.construction_list + [construction]
         db.session.add(self.resources)
 
+    
+    def abort_construction(self, construction):
+        """Remove building from construction list and return some materials."""
+
+        _construction_list = self.construction_list.copy()
+        build_status = 100
+
+        # Calculate build status
+        if construction == _construction_list[0]:
+            _construction = _construction_list[0]
+            build_status = 100*((datetime.today() - _construction.start_build)/_construction.time_build)
+            build_status /= len(construction.required_materials)
+
+        # Return materials
+        for material, amount in construction.required_materials.items():
+            amount /= build_status
+            amount += getattr(self.resources, material)
+            setattr(self.resources, material, amount)
+
+        _construction_list.remove(construction)
+
+        # Set new times for other constructions
+        for index in range(len(_construction_list)):
+            if index == 0:
+                _construction_list[index].start_build = datetime.today()
+            else:
+                _construction_list[index].start_build = _construction_list[index - 1].end_build
+
+        self.construction_list = _construction_list
+
 
     def update(self):
+        """Update status of colony.\n
+        This function ends of build from construction list,\t
+        increase production and adds resources.\n
+        This function is used in check request functions!"""
 
+        # End of build
         _construction_list = self.construction_list.copy()
 
         while _construction_list and datetime.today() >= _construction_list[0].end_build:
@@ -178,5 +240,32 @@ class Colony(db.Model):
             _construction_list.pop(0)
         
         self.construction_list = _construction_list
+
+        # Update production
+        production = dict()
+
+        for building in self.buildings.get_buildings().values():
+            for resource, value in building.production.items():
+                resource += '_production'
+                
+                if resource in production:
+                    production[resource] += value
+                else:
+                    production[resource] = value
+
+        for resource, value in production.items():
+            setattr(self.resources, resource, value)
+
+        # Add resources
+        if self.last_update + timedelta(minutes=10) >= datetime.today():
+            times = (datetime.today() - self.last_update)/timedelta(hours=1)
+
+            for resource in self.resources.get_resources().keys():
+                production = getattr(self.resources, resource + '_production')
+                amount = getattr(self.resources, resource) + times*production
+                setattr(self.resources, resource, amount)
+
+        # Save update
+        self.last_update = datetime.today()
         db.session.add(self)
         db.session.commit()

@@ -78,6 +78,9 @@ class Building():
     #----------------------------------------------------------------
 
     def remove_trash(self):
+        """Remove resource from production which are not produced,\t
+        remove required building below first level and\t
+        remove materials which are not used to build."""
 
         # Remove from production all products that are not produced
         for key, value in self.production.copy().items():
@@ -96,6 +99,7 @@ class Building():
 
     
     def get_json(self):
+        """Return data of the object in dictionary."""
 
         return {
             'level': self.level,

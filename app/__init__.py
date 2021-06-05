@@ -22,8 +22,8 @@ app.register_blueprint(colonies.bp)
 app.register_blueprint(users.bp)
 
 # Register error pages
-app.register_error_handler(401, lambda e: render_template('errors/401.html'))
-app.register_error_handler(404, lambda e: render_template('errors/404.html'))
+app.register_error_handler(401, lambda e: render_template('errors/401.html')) # Unauthorized
+app.register_error_handler(404, lambda e: render_template('errors/404.html')) # Page not found
 
 # Initialize administration and login mechanism
 login_manager = LoginManager(app)

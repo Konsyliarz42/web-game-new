@@ -21,17 +21,24 @@ def profile(user_id):
     if request.method == 'POST':
         form_name = request.form['form']
 
+        # Delete Resources, Buildings and Colony Recods
         if form_name == 'delete_colony':
             colony = Colony.query.filter_by(id=request.form['id']).all()
 
             if colony:
-                db.session.delete(colony[0])
+                colony = colony[0]
+                db.session.delete(colony.resources)
+                db.session.delete(colony.buildings)
+                db.session.delete(colony)
                 db.session.commit()
             else:
                 code = 400
 
+        # Delete all user data
         if form_name == 'delete_user':
             for colony in user.colonies:
+                db.session.delete(colony.resources)
+                db.session.delete(colony.buildings)
                 db.session.delete(colony)
 
             logout_user()

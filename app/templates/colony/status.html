@@ -24,7 +24,11 @@
                 <li>
                     {{ building.name }} ({{ building.level }} lvl):<br>
                     {{ remove_milliseconds(building.start_build) }} - {{ remove_milliseconds(building.end_build) }}
-                    </li>
+                    <form method="POST">
+                        <input type="hidden" name="abort" value="{{ building.name|lower }}">
+                        <button>Przerwij</button>
+                    </form>
+                </li>
             {% else %}
                 <p>Brak</p>
             {% endfor %}
