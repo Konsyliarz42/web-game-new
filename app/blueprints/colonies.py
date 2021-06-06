@@ -63,6 +63,7 @@ def create():
 def status(colony_id):
 
     user, colony, result = check_request(colony_id)
+    code = 200
 
     if result:
         return result
@@ -79,8 +80,10 @@ def status(colony_id):
             colony.abort_construction(construction)
             db.session.add(colony)
             db.session.commit()
+        else:
+            code = 400
 
-    return response('colony/status.html', buildings=buildings, resources=resources)
+    return response('colony/status.html', code, buildings=buildings, resources=resources)
 
 
 @login_required
@@ -88,6 +91,7 @@ def status(colony_id):
 def constructions(colony_id):
 
     user, colony, result = check_request(colony_id)
+    code = 200
 
     if result:
         return result
@@ -104,5 +108,8 @@ def constructions(colony_id):
             db.session.commit()
 
             buildings = colony.buildings.get_next_buildings()
+            code = 201
+        else:
+            code = 400
 
-    return response('colony/constructions.html', buildings=buildings)
+    return response('colony/constructions.html', code, buildings=buildings)

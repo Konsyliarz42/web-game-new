@@ -1,5 +1,5 @@
 from flask import Blueprint, request, redirect, url_for, abort
-from flask_login import login_required
+from flask_login import login_required, logout_user
 
 from ..models import db, User, Colony
 from ..routes_functions import response, get_user
