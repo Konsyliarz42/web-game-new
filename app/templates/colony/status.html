@@ -56,7 +56,7 @@
 
         <ul>
             {% for raw_name, resource in resources.items() %}
-                <li>{{ raw_name }}: {{ resource[0] }} | {{ resource[1] }}/h</li>
+                <li>{{ raw_name }}: {{ resource[0]|int }} | {{ resource[1]|round }}/h</li>
             {% endfor %}
         </ul>
     </div>

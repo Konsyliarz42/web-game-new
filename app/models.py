@@ -55,6 +55,9 @@ class Resources(db.Model):
     food = db.Column(db.Float(), default=1000.0)
     food_production = db.Column(db.Float(), default=0.0)
 
+    iron = db.Column(db.Float(), default=0.0)
+    iron_production = db.Column(db.Float(), default=0.0)
+
     def __repr__(self):
         return f"<Resources for {self.colony_id} colony>"
 
@@ -66,9 +69,10 @@ class Resources(db.Model):
         second position is current production of resource."""
 
         return {
-            'wood': (round(self.wood), self.wood_production),
-            'stone': (round(self.stone), self.stone_production),
-            'food': (round(self.food), self.food_production)
+            'wood': (self.wood, self.wood_production),
+            'stone': (self.stone, self.stone_production),
+            'food': (self.food, self.food_production),
+            'iron': (self.iron, self.iron_production)
         }
 
 
@@ -77,10 +81,14 @@ class Buildings(db.Model):
     id = db.Column(db.Integer(), primary_key=True, nullable=False)
     colony_id = db.Column(db.Integer(), db.ForeignKey('colony.id'))
 
-    houses = db.Column(db.Integer(), default=1)
+    warehouse = db.Column(db.Integer(), default=1)
     sawmill = db.Column(db.Integer(), default=0)
     quarry = db.Column(db.Integer(), default=0)
     farm = db.Column(db.Integer(), default=0)
+
+    mine = db.Column(db.Integer(), default=0)
+    forge = db.Column(db.Integer(), default=0)
+    barracks = db.Column(db.Integer(), default=0)
 
     def __repr__(self):
         return f"<Buildings for {self.colony_id} colony>"
@@ -91,10 +99,13 @@ class Buildings(db.Model):
         """Return dictionary with object of all buildings."""
 
         return {
-            'houses': b.Houses(self.houses),
+            'warehouse': b.Warehouse(self.warehouse),
             'sawmill': b.Sawmill(self.sawmill),
             'quarry': b.Quarry(self.quarry),
-            'farm': b.Farm(self.farm)
+            'farm': b.Farm(self.farm),
+            'mine': b.Mine(self.mine),
+            'forge': b.Forge(self.forge),
+            'barracks': b.Barracks(self.barracks)
         }
 
     
@@ -114,10 +125,13 @@ class Buildings(db.Model):
         construction_list = self.colony.construction_list
         construction_limit = 3
         buildings = {
-            'houses': b.Houses(self.houses + 1),
+            'warehouse': b.Warehouse(self.warehouse + 1),
             'sawmill': b.Sawmill(self.sawmill + 1),
             'quarry': b.Quarry(self.quarry + 1),
-            'farm': b.Farm(self.farm + 1)
+            'farm': b.Farm(self.farm + 1),
+            'mine': b.Mine(self.mine + 1),
+            'forge': b.Forge(self.forge + 1),
+            'barracks': b.Barracks(self.barracks + 1)
         }
 
         for key, building in buildings.items():
