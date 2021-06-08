@@ -45,6 +45,7 @@
         <div style="overflow-y: scroll; border: 1px solid; height: 512px; width: 1024px; display: flex; flex-flow: wrap row;">
             {% for raw_name, building in buildings.items() %}
                 {{ building_card_simple(building) }}
+                <a href="/colony/{{current_colony.id}}/{{building.name|lower}}"><button type="button">Przejdź do budybku</button></a>
             {% else %}
                 <h3>Brak</h3>
             {% endfor %}
@@ -56,7 +57,7 @@
 
         <ul>
             {% for raw_name, resource in resources.items() %}
-                <li>{{ raw_name }}: {{ resource[0]|int }} | {{ resource[1]|round }}/h</li>
+                <li>{{ raw_name }}: {{ resource[0]|int }}/{{ resource[2]|int }} | {{ resource[1]|round }}/h</li>
             {% endfor %}
         </ul>
     </div>

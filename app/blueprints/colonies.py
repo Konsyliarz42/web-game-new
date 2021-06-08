@@ -113,3 +113,26 @@ def constructions(colony_id):
             code = 400
 
     return response('colony/constructions.html', code, buildings=buildings)
+
+
+@login_required
+@bp.route('/<int:colony_id>/<string:building_name>', methods=['GET'])
+def building(colony_id, building_name):
+
+    user, colony, result = check_request(colony_id)
+    buildings = colony.buildings.get_buildings()
+
+    if result:
+        return result
+    elif building_name not in buildings.keys():
+        return abort(404)
+
+    building = buildings[building_name]        
+    building_next, building_errors = colony.buildings.get_next_buildings()[building_name]
+
+    return response('colony/building.html',
+        building=building,
+        building_next=building_next,
+        building_errors=building_errors,
+        special_content=building_name
+    )

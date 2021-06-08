@@ -48,15 +48,19 @@ class Resources(db.Model):
 
     wood = db.Column(db.Float(), default=1000.0)
     wood_production = db.Column(db.Float(), default=0.0)
+    wood_limit = db.Column(db.Float(), default=4000.0)
 
     stone = db.Column(db.Float(), default=1000.0)
     stone_production = db.Column(db.Float(), default=0.0)
+    stone_limit = db.Column(db.Float(), default=4000.0)
 
     food = db.Column(db.Float(), default=1000.0)
     food_production = db.Column(db.Float(), default=0.0)
+    food_limit = db.Column(db.Float(), default=4000.0)
 
     iron = db.Column(db.Float(), default=0.0)
     iron_production = db.Column(db.Float(), default=0.0)
+    iron_limit = db.Column(db.Float(), default=0.0)
 
     def __repr__(self):
         return f"<Resources for {self.colony_id} colony>"
@@ -65,14 +69,15 @@ class Resources(db.Model):
 
     def get_resources(self):
         """Redturn dictionary with tuples of resources.\n
-        First position in tuple is rounded current amount and\t
-        second position is current production of resource."""
+        First position in tuple is rounded current amount,\t
+        second position is current production of resource and\t
+        third position is limit the resource in warehouse."""
 
         return {
-            'wood': (self.wood, self.wood_production),
-            'stone': (self.stone, self.stone_production),
-            'food': (self.food, self.food_production),
-            'iron': (self.iron, self.iron_production)
+            'wood': (self.wood, self.wood_production, self.wood_limit),
+            'stone': (self.stone, self.stone_production, self.stone_limit),
+            'food': (self.food, self.food_production, self.food_limit),
+            'iron': (self.iron, self.iron_production, self.iron_limit)
         }
 
 
@@ -249,8 +254,16 @@ class Colony(db.Model):
         _construction_list = self.construction_list.copy()
 
         while _construction_list and datetime.today() >= _construction_list[0].end_build:
-            key = _construction_list[0].__class__.__name__.lower()
-            setattr(self.buildings, key, _construction_list[0].level)
+            construction = _construction_list[0]
+            key = construction.__class__.__name__.lower()
+            setattr(self.buildings, key, construction.level)
+
+            # Change limit of resources
+            if construction.name == "Warehouse":
+                for resource, amount in construction.special_data.items():
+                    key = resource + '_limit'
+                    setattr(self.resources, key, amount)
+
             _construction_list.pop(0)
         
         self.construction_list = _construction_list
@@ -271,15 +284,21 @@ class Colony(db.Model):
             setattr(self.resources, resource, value)
 
         # Add resources
-        if self.last_update + timedelta(minutes=10) >= datetime.today():
+        if self.last_update + timedelta(minutes=10) <= datetime.today():
             times = (datetime.today() - self.last_update)/timedelta(hours=1)
 
             for resource in self.resources.get_resources().keys():
+                limit = getattr(self.resources, resource + '_limit')
                 production = getattr(self.resources, resource + '_production')
                 amount = getattr(self.resources, resource) + times*production
-                setattr(self.resources, resource, amount)
+                
+                if amount < limit:
+                    setattr(self.resources, resource, amount)
+                else:
+                    setattr(self.resources, resource, limit)
+
+            self.last_update = datetime.today()
 
         # Save update
-        self.last_update = datetime.today()
         db.session.add(self)
         db.session.commit()

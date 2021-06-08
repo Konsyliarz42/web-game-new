@@ -6,6 +6,13 @@ class Warehouse(Building):
         super().__init__(level, start_build)
 
         self.name = 'Warehouse'
+        self.special_data = {
+            # Limits
+            'wood': 4000*self.level,
+            'stone': 4000*self.level,
+            'food': 4000*self.level,
+            'iron': 100*self.level
+        }
         self.required_materials = {
             'wood': 500 + 250*self.level,
             'stone': 250 + 125*self.level
@@ -111,6 +118,16 @@ class Forge(Building):
         super().__init__(level, start_build)
 
         self.name = 'Forge'
+        self.special_data = {
+            # Craftable weapons
+            'sword': self.level > 0,
+            'bow': self.level - 3 >= 0, # Above 3 level
+            'battle_axe': self.level - 8 >= 0, # Above 8 level
+            # Craftable tools
+            'saw': self.level > 0,
+            'scythe': self.level - 3 >= 0, # Above 3 level
+            'pickaxe': self.level - 5 >= 0 # Above 5 level
+        }
         self.production = {
             'food': -50*self.level
         }
@@ -119,7 +136,8 @@ class Forge(Building):
             'stone': 250 + 250*self.level
         }
         self.required_buildings = {
-            'warehouse': self.level + 7
+            'warehouse': self.level + 7,
+            'mine': self.level - 1
         }
         self.remove_trash()
 
@@ -131,6 +149,11 @@ class Barracks(Building):
         super().__init__(level, start_build)
 
         self.name = 'Barracks'
+        self.special_data = {
+            'swordman': self.level > 0,
+            'bowman': self.level - 3 >= 0,
+            'axeman': self.level - 5 >= 0
+        }
         self.production = {
             'food': -100*self.level
         }
@@ -139,6 +162,7 @@ class Barracks(Building):
             'stone': 250 + 250*self.level
         }
         self.required_buildings = {
-            'warehouse': self.level + 8
+            'warehouse': self.level + 8,
+            'forge': self.level - 1
         }
         self.remove_trash()

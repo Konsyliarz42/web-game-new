@@ -1,0 +1,125 @@
+{% extends 'index.html' %}
+{% from 'macros/_errors.html' import error %}
+
+{% block title %}{{ building.name }}
+{% endblock %}
+
+{% block content %}
+
+    <a href="/colony/{{current_colony.id}}/status"><button type="button">Powrót do kolonii</button></a>
+    <br>
+
+    <h1>Budynek {{ building.name }}</h1>
+
+    {% if special_content == 'forge' %}
+        <table style="width:25%">
+            <th>Wytwórz</th>
+            {% for tool, permission in building.special_data.items() %}
+                <tr>
+                    <td>{{ tool|capitalize }}</td>
+                    <td>{{ permission }}</td>
+                </tr>
+            {% endfor %}
+        </table><br>
+    {% elif special_content == 'barracks' %}
+        <table style="width:25%">
+            <th>Wyszkol</th>
+            {% for soldier, permission in building.special_data.items() %}
+                <tr>
+                    <td>{{ soldier|capitalize }}</td>
+                    <td>{{ permission }}</td>
+                </tr>
+            {% endfor %}
+        </table><br>
+    {% endif %}
+
+    <table style="width:25%">
+        <th>Poziom</th>
+        <tr>
+            <td style="border: 1px solid;">{{ building.level }}</td>
+            <td style="border: 1px solid;">{{ building_next.level }}</td>
+        </tr>
+
+        {% if special_content == 'warehouse' %}
+            <th>Limit magazynu</th>
+            <tr>
+                <td style="border: 1px solid;"><dl style="margin: 0;">
+                    {% for resource, amount in building.special_data.items() %}
+                        <dt>{{ resource }}: {{ amount }}</dt>
+                    {% endfor %}
+                </dl></td>
+                <td style="border: 1px solid;"><dl style="margin: 0;">
+                    {% for resource, amount in building_next.special_data.items() %}
+                        <dt>{{ resource }}: {{ amount }}</dt>
+                    {% endfor %}
+                </dl></td>
+            </tr>
+        {% endif %}
+
+        <th>Produkcja</th>
+        <tr>
+            <td style="border: 1px solid;"><dl style="margin: 0;">
+                {% for resource, amount in building.production.items() %}
+                    <dt>{{ resource }}: {{ amount }}</dt>
+                {% endfor %}
+            </dl></td>
+            <td style="border: 1px solid;"><dl style="margin: 0;">
+                {% for resource, amount in building_next.production.items() %}
+                    <dt>{{ resource }}: {{ amount }}</dt>
+                {% endfor %}
+            </dl></td>
+        </tr>
+
+        <th>Wymagane materiały</th>
+        <tr>
+            <td style="border: 1px solid;"><dl style="margin: 0;">
+                {% for resource, amount in building.required_materials.items() %}
+                    <dt>{{ resource }}: {{ amount }}</dt>
+                {% endfor %}
+            </dl></td>
+            <td style="border: 1px solid;"><dl style="margin: 0;">
+                {% for resource, amount in building_next.required_materials.items() %}
+                    <dt>{{ resource }}: {{ amount }}</dt>
+                {% endfor %}
+            </dl></td>
+        </tr>
+        
+        <th>Wymagane budyki</th>
+        <tr>
+            <td style="border: 1px solid;"><dl style="margin: 0;">
+                {% for construction, level in building.required_buildings.items() %}
+                    <dt>{{ construction }}: {{ level }}</dt>
+                {% endfor %}
+            </dl></td>
+            <td style="border: 1px solid;"><dl style="margin: 0;">
+                {% for construction, level in building_next.required_buildings.items() %}
+                    <dt>{{ construction }}: {{ level }}</dt>
+                {% endfor %}
+            </dl></td>
+        </tr> 
+    </table> 
+
+    <br><div>
+        {% if building_errors %}
+            <button disabled>Nie spełniono wymagań</button>
+
+            <ul>
+                {% for key, arg in building_errors %}
+                    <li style="padding: 4px;">{{ error(key, arg) }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <form method="POST" action="/colony/{{current_colony.id}}/constructions">
+                <input type="hidden" name="construction" value="{{ building.name|lower }}">
+                
+                {% if building.level <= 1 %}
+                    <button>Rozpocznij budowę</button>
+                {% else %}
+                    <button>Rozbuduj</button>
+                {% endif %}
+            </form>  
+        {% endif %}
+    </div>
+
+
+{% endblock %}

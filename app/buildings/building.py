@@ -51,6 +51,7 @@ class Building():
         self.required_materials = dict()
         self.required_buildings = dict()
         self.start_build = start_build
+        self.special_data = None
 
 
     @property
