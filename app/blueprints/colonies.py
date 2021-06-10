@@ -5,6 +5,7 @@ from datetime import datetime
 from ..models import db, Colony, Buildings, Resources
 from ..forms import CreateColonyForm
 from ..routes_functions import response, get_user, get_colony
+from ..tools import tools
 
 bp = Blueprint('colonies', __name__,  url_prefix='/colony')
 
@@ -116,11 +117,12 @@ def constructions(colony_id):
 
 
 @login_required
-@bp.route('/<int:colony_id>/<string:building_name>', methods=['GET'])
+@bp.route('/<int:colony_id>/<string:building_name>', methods=['GET', 'POST'])
 def building(colony_id, building_name):
 
     user, colony, result = check_request(colony_id)
     buildings = colony.buildings.get_buildings()
+    code = 200
 
     if result:
         return result
@@ -129,10 +131,31 @@ def building(colony_id, building_name):
 
     building = buildings[building_name]        
     building_next, building_errors = colony.buildings.get_next_buildings()[building_name]
+    tools = colony.resources.get_tools()
 
-    return response('colony/building.html',
+    if request.method == 'POST':
+        if building_name == 'warehouse' and not colony.active_tool:
+            tool_name = request.form['tool']
+
+            if tools[tool_name][0] > 0:
+                colony.activate_tool(tools[tool_name][2])
+                db.session.add(colony)
+                db.session.commit()
+                tools = colony.resources.get_tools()
+                code = 201
+
+        if building_name == 'forge' and not colony.craft:
+            tool_name = request.form['tool']
+            colony.craft = tools[tool_name][2]
+            db.session.add(colony)
+            db.session.commit()
+
+        code = 400
+
+    return response('colony/building.html', code,
         building=building,
         building_next=building_next,
         building_errors=building_errors,
-        special_content=building_name
+        special_content=building_name,
+        tools=tools
     )

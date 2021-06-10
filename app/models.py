@@ -4,6 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 
 from .buildings import buildings as b
+from .tools import tools as t
 
 db = SQLAlchemy()
 
@@ -46,6 +47,7 @@ class Resources(db.Model):
     id = db.Column(db.Integer(), primary_key=True, nullable=False)
     colony_id = db.Column(db.Integer(), db.ForeignKey('colony.id'))
 
+    # Materials
     wood = db.Column(db.Float(), default=1000.0)
     wood_production = db.Column(db.Float(), default=0.0)
     wood_limit = db.Column(db.Float(), default=4000.0)
@@ -61,6 +63,27 @@ class Resources(db.Model):
     iron = db.Column(db.Float(), default=0.0)
     iron_production = db.Column(db.Float(), default=0.0)
     iron_limit = db.Column(db.Float(), default=0.0)
+
+    # Tools
+    saw = db.Column(db.Integer(), default=0)
+    saw_limit = db.Column(db.Integer(), default=1)
+
+    scythe = db.Column(db.Integer(), default=0)
+    scythe_limit = db.Column(db.Integer(), default=1)
+
+    pickaxe = db.Column(db.Integer(), default=0)
+    pickaxe_limit = db.Column(db.Integer(), default=1)
+
+    # Weapons
+    sword = db.Column(db.Integer(), default=0)
+    sword_limit = db.Column(db.Integer(), default=4)
+
+    bow = db.Column(db.Integer(), default=0)
+    bow_limit = db.Column(db.Integer(), default=4)
+
+    battle_axe = db.Column(db.Integer(), default=0)
+    battle_axe_limit = db.Column(db.Integer(), default=4)
+
 
     def __repr__(self):
         return f"<Resources for {self.colony_id} colony>"
@@ -78,6 +101,22 @@ class Resources(db.Model):
             'stone': (self.stone, self.stone_production, self.stone_limit),
             'food': (self.food, self.food_production, self.food_limit),
             'iron': (self.iron, self.iron_production, self.iron_limit)
+        }
+
+
+    def get_tools(self):
+        """Redturn dictionary with tuples of tools.\n
+        First position in tuple is current amount of tool in database,\t
+        second position is limit of tool and\t
+        third position is the object of tool."""
+
+        return {
+            'sword': (self.sword, self.sword_limit, t.Sword()),
+            'bow': (self.bow, self.bow_limit, t.Bow()),
+            'battle_axe': (self.battle_axe, self.battle_axe_limit, t.BattleAxe()),
+            'saw': (self.saw, self.saw_limit, t.Saw()),
+            'scythe': (self.scythe, self.scythe_limit, t.Scythe()),
+            'pickaxe': (self.pickaxe, self.pickaxe_limit, t.Pickaxe())
         }
 
 
@@ -174,6 +213,9 @@ class Colony(db.Model):
     
     construction_list = db.Column(db.PickleType(), default=list())
 
+    craft = db.Column(db.PickleType(), default=None)
+    active_tool = db.Column(db.PickleType(), default=None)
+
     buildings = db.relationship('Buildings', backref='colony', uselist=False)
     resources = db.relationship('Resources', backref='colony', uselist=False)
 
@@ -243,6 +285,17 @@ class Colony(db.Model):
 
         self.construction_list = _construction_list
 
+    
+    def activate_tool(self, tool):
+        """Make tool active form now."""
+
+        name = tool.name.lower()
+        amount = getattr(self.resources, name) - 1
+        setattr(self.resources, name, amount)
+
+        tool.start_active = datetime.today()
+        self.active_tool = tool
+
 
     def update(self):
         """Update status of colony.\n
@@ -268,7 +321,18 @@ class Colony(db.Model):
         
         self.construction_list = _construction_list
 
-        # Update production
+        # End of craft
+        if self.craft and datetime.today() >= self.craft.end_build:
+            tool_name = self.craft.name.lower()
+            amount = getattr(self.resources, tool_name) + 1
+            setattr(self.resources, tool_name, amount)
+            self.craft = None
+
+        # End of active tool
+        if self.active_tool and datetime.today() > self.active_tool.end_active:
+            self.active_tool = None
+
+        # Update current production
         production = dict()
 
         for building in self.buildings.get_buildings().values():
@@ -280,6 +344,14 @@ class Colony(db.Model):
                 else:
                     production[resource] = value
 
+                # Include tools
+                if self.active_tool:
+                    _resource = resource[:resource.rfind('_')]
+
+                    if _resource in self.active_tool.benefits:
+                        production[resource] += (self.active_tool.benefits[_resource]/100)*production[resource]
+
+                    
         for resource, value in production.items():
             setattr(self.resources, resource, value)
 

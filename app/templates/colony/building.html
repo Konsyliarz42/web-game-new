@@ -1,5 +1,6 @@
 {% extends 'index.html' %}
 {% from 'macros/_errors.html' import error %}
+{% from 'macros/_remove_milliseconds.html' import remove_milliseconds %}
 
 {% block title %}{{ building.name }}
 {% endblock %}
@@ -12,12 +13,47 @@
     <h1>Budynek {{ building.name }}</h1>
 
     {% if special_content == 'forge' %}
-        <table style="width:25%">
+        <table style="width:60%">
             <th>Wytwórz</th>
-            {% for tool, permission in building.special_data.items() %}
+            {% for tool_name, permission in building.special_data.items() %}
+            {% set tool = tools[tool_name][2] %}
                 <tr>
-                    <td>{{ tool|capitalize }}</td>
-                    <td>{{ permission }}</td>
+                    <td>{{ tool.name }}</td>
+                    <td>Wymagane materiały:
+                        <ul>
+                            {% for material, amount in tool.required_materials.items() %}
+                                <li>{{ material }}: {{ amount }}</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                    <td>Czas budowy: {{ remove_milliseconds(tool.time_build) }}</td>
+                    <td>
+                        Długość działania:
+                        {% if tool.benefits %}
+                            {{ remove_milliseconds(tool.time_active) }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        Bonus produkcji:
+                        <ul>
+                            {% for material, percent in tool.benefits.items() %}
+                                <li>{{ material }} +{{ percent }}%</li>
+                            {% else %}
+                                Brak
+                            {% endfor %}
+                        </ul>
+                    </td>
+
+                    <td><form action="" method="post">
+                        <input type="hidden" name="tool" value="{{tool_name}}">
+                        {% if permission %}
+                            <button>Wytwórz</button>
+                        {% else %}
+                            <button disabled>Zablokowane</button>
+                        {% endif %}
+                    </form></td>
                 </tr>
             {% endfor %}
         </table><br>
@@ -31,16 +67,8 @@
                 </tr>
             {% endfor %}
         </table><br>
-    {% endif %}
-
-    <table style="width:25%">
-        <th>Poziom</th>
-        <tr>
-            <td style="border: 1px solid;">{{ building.level }}</td>
-            <td style="border: 1px solid;">{{ building_next.level }}</td>
-        </tr>
-
-        {% if special_content == 'warehouse' %}
+    {% elif special_content == 'warehouse' %}
+        <table style="width:25%">
             <th>Limit magazynu</th>
             <tr>
                 <td style="border: 1px solid;"><dl style="margin: 0;">
@@ -54,7 +82,38 @@
                     {% endfor %}
                 </dl></td>
             </tr>
-        {% endif %}
+        </table><br>
+
+        <table style="width:35%">
+            <th>Użyj narzędzia</th>
+            <tr>
+                {% for tool_name, info in tools.items() %}
+                {% set amount = info[0] %}
+                {% set limit = info[1] %}
+                {% set tool = info[2] %}
+                    <td>
+                        {{ tool.name }} - {{ amount }}/{{ limit }}
+                        <form action="" method="post">
+                            <input type="hidden" name="tool" value="{{tool_name}}">
+
+                            {% if current_colony.active_tool or not amount %}
+                                <button disabled>Zablokowane</button>
+                            {% else %}
+                                <button>Użyj</button>
+                            {% endif %}
+                        </form>
+                    </td>
+                {% endfor %}
+            </tr>
+        </table><br>
+    {% endif %}
+
+    <table style="width:25%">
+        <th>Poziom</th>
+        <tr>
+            <td style="border: 1px solid;">{{ building.level }}</td>
+            <td style="border: 1px solid;">{{ building_next.level }}</td>
+        </tr>
 
         <th>Produkcja</th>
         <tr>
