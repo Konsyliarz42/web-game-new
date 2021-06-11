@@ -3,8 +3,7 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 
-from .buildings import buildings as b
-from .tools import tools as t
+from .assets import buildings as b, tools as t
 
 db = SQLAlchemy()
 
@@ -270,7 +269,7 @@ class Colony(db.Model):
 
         # Return materials
         for material, amount in construction.required_materials.items():
-            amount /= build_status
+            amount /= build_status or 1
             amount += getattr(self.resources, material)
             setattr(self.resources, material, amount)
 
@@ -295,6 +294,18 @@ class Colony(db.Model):
 
         tool.start_active = datetime.today()
         self.active_tool = tool
+
+    
+    def start_craft(self, tool):
+        """Start crafting item."""
+
+        tool.start_build = datetime.today()
+
+        for material, amount in tool.required_materials.items():
+            value = getattr(self.resources, material) - amount
+            setattr(self.resources, material, value)
+
+        self.craft = tool
 
 
     def update(self):

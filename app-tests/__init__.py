@@ -3,6 +3,7 @@ from flask_login import login_user
 
 from app import app as flask_app
 from app.models import db, User, Colony, Buildings, Resources
+from app.assets import buildings as constructions, tools
 
 TESTER = {
     'username': 'tester',
@@ -45,6 +46,7 @@ class MyTestCase(TestCase):
         db.session.add(tester)
         db.session.add(tester_colony)
         db.session.commit()
+
 
     def tearDown(self):
 

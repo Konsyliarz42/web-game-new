@@ -5,7 +5,6 @@ from datetime import datetime
 from ..models import db, Colony, Buildings, Resources
 from ..forms import CreateColonyForm
 from ..routes_functions import response, get_user, get_colony
-from ..tools import tools
 
 bp = Blueprint('colonies', __name__,  url_prefix='/colony')
 
@@ -133,7 +132,20 @@ def building(colony_id, building_name):
     building_next, building_errors = colony.buildings.get_next_buildings()[building_name]
     tools = colony.resources.get_tools()
 
+    # Check if tool can be crafted
+    if building_name == 'forge':
+        for tool_name, permission in building.special_data.items():
+            if permission:
+                if colony.craft:
+                    building.special_data.update({tool_name: False})
+                else:
+                    for material, amount in tools[tool_name][2].required_materials.items():
+                        if getattr(colony.resources, material) < amount:
+                            building.special_data.update({tool_name: False})
+                            pass
+
     if request.method == 'POST':
+        # Activate tool
         if building_name == 'warehouse' and not colony.active_tool:
             tool_name = request.form['tool']
 
@@ -142,15 +154,19 @@ def building(colony_id, building_name):
                 db.session.add(colony)
                 db.session.commit()
                 tools = colony.resources.get_tools()
-                code = 201
-
-        if building_name == 'forge' and not colony.craft:
+        # Craft tool
+        elif building_name == 'forge' and not colony.craft:
             tool_name = request.form['tool']
-            colony.craft = tools[tool_name][2]
-            db.session.add(colony)
-            db.session.commit()
 
-        code = 400
+            # Check limit
+            if tools[tool_name][0] < tools[tool_name][1]:
+                colony.start_craft(tools[tool_name][2])
+                db.session.add(colony)
+                db.session.commit()
+            else:
+                code = 400
+        else:
+            code = 400
 
     return response('colony/building.html', code,
         building=building,

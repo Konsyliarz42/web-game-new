@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from ..classes_functions import number_to_time
+from .classes_functions import number_to_time
 
 class Tool():
 

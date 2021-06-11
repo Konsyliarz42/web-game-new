@@ -22,6 +22,10 @@ class ColoniesTests(MyTestCase):
             response = self.client.get('/colony/1/constructions')
             self.assertEqual(response.status_code, 200)
 
+            # Building in colony
+            response = self.client.get('/colony/1/warehouse')
+            self.assertEqual(response.status_code, 200)
+
 
     # Create colony
     def test_create_colony(self):
@@ -101,3 +105,61 @@ class ColoniesTests(MyTestCase):
                 key = 'abort'
                 url = '/colony/1/status'
                 buildings.reverse()
+
+
+    # Start craft tool
+    def test_craft_tool(self):
+
+        with patch('app.routes_functions.current_user') as mock_user:
+            mock_user.colonies = Colony.query.all()
+            mock_user.colonies[0].buildings.forge = 1
+            mock_user.colonies[0].resources.iron = 100
+
+            # Start craft
+            resources = Colony.query.first().resources.get_resources()
+            response = self.client.post('/colony/1/forge', data={'tool': "saw"})
+            self.assertEqual(response.status_code, 200)
+
+            # Check resources and data of tool
+            tool = Colony.query.first().craft
+            self.assertTrue(tool)
+            self.assertTrue(tool.start_build)
+            self.assertNotEqual(resources, Colony.query.first().resources.get_resources())
+
+            # Check multiple craft
+            response = self.client.post('/colony/1/forge', data={'tool': "saw"})
+            self.assertEqual(response.status_code, 400)
+
+
+    # Start craft tool above limit
+    def test_craft_tool_above_limit(self):
+
+        with patch('app.routes_functions.current_user') as mock_user:
+            mock_user.colonies = Colony.query.all()
+            mock_user.colonies[0].buildings.forge = 1
+            mock_user.colonies[0].resources.iron = 100
+            mock_user.colonies[0].resources.saw = 1
+
+            response = self.client.post('/colony/1/forge', data={'tool': "saw"})
+            self.assertEqual(response.status_code, 400)
+
+
+    # Activate tool
+    def test_activate_tool(self):
+
+        with patch('app.routes_functions.current_user') as mock_user:
+            mock_user.colonies = Colony.query.all()
+            mock_user.colonies[0].resources.saw = 2
+
+            # Start activate
+            response = self.client.post('/colony/1/warehouse', data={'tool': "saw"})
+            self.assertEqual(response.status_code, 200)
+
+            # Check data
+            colony = Colony.query.first()
+            self.assertEqual(colony.resources.saw, 1)
+            self.assertTrue(colony.active_tool)
+
+            # Check multiple activate
+            response = self.client.post('/colony/1/warehouse', data={'tool': "saw"})
+            self.assertEqual(response.status_code, 400)

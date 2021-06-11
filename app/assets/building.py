@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from ..classes_functions import number_to_time, timedelta_dict
+from .classes_functions import number_to_time, timedelta_dict
 
 class Building():
 
