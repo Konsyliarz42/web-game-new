@@ -49,6 +49,20 @@
             {% endif %}
         </dd>
     </div>
+
+    <div>
+        <p>Szkolenie</p>
+        <dd>
+            {% if current_colony.training %}
+                {{ current_colony.training[0].name }} x{{ current_colony.training|length }}
+                <br>
+                {{ remove_milliseconds(current_colony.training[0].start_training) }} -
+                {{ remove_milliseconds(current_colony.training[-1].end_training) }}
+            {% else %}
+                Brak
+            {% endif %}
+        </dd>
+    </div>
     
 
     <div>
@@ -96,6 +110,30 @@
                     {% if current_colony.active_tool and raw_name in current_colony.active_tool.benefits %}
                         (+{{ current_colony.active_tool.benefits[raw_name] }}%)
                     {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div>
+        <p>Narzędzia i broń:</p>
+        <ul>
+            {% for raw_name, tool in tools.items() %}
+                <li>
+                    {{ raw_name }}:
+                    {{ tool[0] }}/{{ tool[1] }}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div>
+        <p>Armia:</p>
+        <ul>
+            {% for raw_name, soldiers in army.items() %}
+                <li>
+                    {{ raw_name }}:
+                    {{ soldiers[0] }}
                 </li>
             {% endfor %}
         </ul>

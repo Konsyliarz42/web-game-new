@@ -16,7 +16,7 @@
         <table style="width:60%">
             <th>Wytwórz</th>
             {% for tool_name, permission in building.special_data.items() %}
-            {% set tool = tools[tool_name][2] %}
+            {% set tool = special_data[tool_name][2] %}
                 <tr>
                     <td>{{ tool.name }}</td>
                     <td>Wymagane materiały:
@@ -63,7 +63,18 @@
             {% for soldier, permission in building.special_data.items() %}
                 <tr>
                     <td>{{ soldier|capitalize }}</td>
-                    <td>{{ permission }}</td>
+
+                    {% if permission %}
+                        <td>
+                            <form action="" method="post">
+                                <input type="hidden" value="{{soldier}}" name="unit">
+                                <input type="number" value="0" min="0" max="{{special_data[soldier][2]}}" name="amount">
+                                <button>Wyszkol</button>
+                            </form>
+                        </td>
+                    {% else %}
+                        <td>Brak możliwości</td>
+                    {% endif %}
                 </tr>
             {% endfor %}
         </table><br>
@@ -87,7 +98,7 @@
         <table style="width:35%">
             <th>Użyj narzędzia</th>
             <tr>
-                {% for tool_name, info in tools.items() %}
+                {% for tool_name, info in special_data.items() %}
                 {% set amount = info[0] %}
                 {% set limit = info[1] %}
                 {% set tool = info[2] %}

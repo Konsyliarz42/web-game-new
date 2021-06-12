@@ -4,7 +4,7 @@ from datetime import datetime
 
 from ..models import db, Colony, Buildings, Resources
 from ..forms import CreateColonyForm
-from ..routes_functions import response, get_user, get_colony
+from ..routes_functions import response, get_user, get_colony, check_tools_permission, check_army_permission
 
 bp = Blueprint('colonies', __name__,  url_prefix='/colony')
 
@@ -70,6 +70,8 @@ def status(colony_id):
 
     buildings = colony.buildings.get_buildings()
     resources = colony.resources.get_resources()
+    tools = colony.resources.get_tools()
+    army = colony.army.get_army()
 
     # Abort build
     if request.method == 'POST':
@@ -83,7 +85,7 @@ def status(colony_id):
         else:
             code = 400
 
-    return response('colony/status.html', code, buildings=buildings, resources=resources)
+    return response('colony/status.html', code, buildings=buildings, resources=resources, tools=tools, army=army)
 
 
 @login_required
@@ -130,19 +132,22 @@ def building(colony_id, building_name):
 
     building = buildings[building_name]        
     building_next, building_errors = colony.buildings.get_next_buildings()[building_name]
-    tools = colony.resources.get_tools()
+    tools = colony.resources.get_tools()  
+    army = colony.army.get_army()  
 
-    # Check if tool can be crafted
-    if building_name == 'forge':
-        for tool_name, permission in building.special_data.items():
-            if permission:
-                if colony.craft:
-                    building.special_data.update({tool_name: False})
-                else:
-                    for material, amount in tools[tool_name][2].required_materials.items():
-                        if getattr(colony.resources, material) < amount:
-                            building.special_data.update({tool_name: False})
-                            pass
+    # Set special data for different buildings
+    if building_name == 'warehouse':
+        special_data = tools
+    elif building_name == 'forge':
+        building.special_data = check_tools_permission(colony, building)
+        special_data = tools
+    elif building_name == 'barracks':
+        building.special_data = check_army_permission(colony, building)
+        limits = colony.army.get_army_limits()
+        special_data = dict()
+
+        for soldier, data in army.items():
+            special_data[soldier] = list(data) + [limits[soldier]]
 
     if request.method == 'POST':
         # Activate tool
@@ -153,18 +158,33 @@ def building(colony_id, building_name):
                 colony.activate_tool(tools[tool_name][2])
                 db.session.add(colony)
                 db.session.commit()
-                tools = colony.resources.get_tools()
+                special_data = colony.resources.get_tools()
+            else:
+                code = 400
         # Craft tool
         elif building_name == 'forge' and not colony.craft:
             tool_name = request.form['tool']
 
-            # Check limit
-            if tools[tool_name][0] < tools[tool_name][1]:
+            # Check limit and permit
+            if tools[tool_name][0] < tools[tool_name][1] and building.special_data[tool_name]:
                 colony.start_craft(tools[tool_name][2])
                 db.session.add(colony)
                 db.session.commit()
             else:
                 code = 400
+        # Training
+        elif building_name == 'barracks' and not colony.training:
+            unit_name = request.form['unit']
+            amount = int(request.form['amount'])
+
+            if building.special_data[unit_name]:
+                soldier = special_data[unit_name][1]
+                colony.start_training(soldier, amount)
+                db.session.add(colony)
+                db.session.commit()
+            else:
+                code = 400
+
         else:
             code = 400
 
@@ -173,5 +193,5 @@ def building(colony_id, building_name):
         building_next=building_next,
         building_errors=building_errors,
         special_content=building_name,
-        tools=tools
+        special_data=special_data
     )

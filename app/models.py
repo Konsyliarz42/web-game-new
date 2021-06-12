@@ -2,8 +2,9 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
+import copy
 
-from .assets import buildings as b, tools as t
+from .assets import buildings as b, tools as t, soldiers as s
 
 db = SQLAlchemy()
 
@@ -39,6 +40,46 @@ class User(db.Model, UserMixin):
         """Check if password is the same like user password."""
 
         return check_password_hash(self.password, password)
+
+
+class Army(db.Model):
+
+    id = db.Column(db.Integer(), primary_key=True, nullable=False)
+    colony_id = db.Column(db.Integer(), db.ForeignKey('colony.id'))
+
+    swordman = db.Column(db.Integer(), default=0)
+    bowman = db.Column(db.Integer(), default=0)
+    axeman = db.Column(db.Integer(), default=0)
+
+    def __repr__(self):
+        return f"<Army for {self.colony_id} colony>"
+
+    #----------------------------------------------------------------
+
+    def get_army(self):
+
+        return {
+            'swordman': (self.swordman, s.Swordman()),
+            'bowman': (self.bowman, s.Bowman()),
+            'axeman': (self.axeman, s.Axeman())
+        }
+
+    
+    def get_army_limits(self):
+
+        resources = {**self.colony.resources.get_resources(), **self.colony.resources.get_tools()}
+        result = dict()
+
+        for soldier_name, data in self.get_army().items():
+            soldier = data[1]
+            numbers = list()
+
+            for material, amount in soldier.required_resources.items():
+                numbers.append(resources[material][0]/amount)
+
+            result[soldier_name] = int(sorted(numbers)[0])
+
+        return result
 
 
 class Resources(db.Model):
@@ -211,12 +252,14 @@ class Colony(db.Model):
     last_update = db.Column(db.DateTime(), nullable=False, default=datetime.now())
     
     construction_list = db.Column(db.PickleType(), default=list())
-
     craft = db.Column(db.PickleType(), default=None)
     active_tool = db.Column(db.PickleType(), default=None)
+    training = db.Column(db.PickleType(), default=list())
 
     buildings = db.relationship('Buildings', backref='colony', uselist=False)
     resources = db.relationship('Resources', backref='colony', uselist=False)
+    army = db.relationship('Army', backref='colony', uselist=False)
+
 
     def __str__(self):
         return self.name
@@ -233,9 +276,11 @@ class Colony(db.Model):
 
         buildings = Buildings(colony=self)
         resources = Resources(colony=self)
+        army = Army(colony=self)
 
         db.session.add(buildings)
         db.session.add(resources)
+        db.session.add(army)
     
     #----------------------------------------------------------------
 
@@ -308,6 +353,27 @@ class Colony(db.Model):
         self.craft = tool
 
 
+    def start_training(self, soldier, amount):
+        """Start training soldiers."""
+
+        for _ in range(amount):
+            training = self.training.copy() or list()
+            soldier = copy.copy(soldier)
+
+            if training:
+                soldier.start_training = training[-1].end_training
+            else:
+                soldier.start_training = datetime.today()
+
+            training.append(soldier)
+            self.training = training
+
+        for resource, r_amount in soldier.required_resources.items():
+            r_amount *= amount + 1
+            value = getattr(self.resources, resource) - r_amount
+            setattr(self.resources, resource, value)
+
+
     def update(self):
         """Update status of colony.\n
         This function ends of build from construction list,\t
@@ -342,6 +408,15 @@ class Colony(db.Model):
         # End of active tool
         if self.active_tool and datetime.today() > self.active_tool.end_active:
             self.active_tool = None
+
+        # End of training
+        while self.training and datetime.today() >= self.training[0].end_training:
+            training = self.training.copy()
+            name = training[0].name.lower()
+            value = getattr(self.army, name) + 1
+            setattr(self.army, name, value)
+            training.pop(0)
+            self.training = training
 
         # Update current production
         production = dict()

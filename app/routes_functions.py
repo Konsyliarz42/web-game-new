@@ -55,3 +55,40 @@ def response(template, http_code=200, **context):
     variables = {**default_context, **context}
 
     return render_template(template, **variables), http_code
+
+
+def check_tools_permission(colony, forge):
+    """Function checks permit on craft all tools."""
+
+    craft = bool(colony.craft)
+    tools = colony.resources.get_tools()
+    resources = colony.resources.get_resources()
+    
+    for tool_name, permission in forge.special_data.items():
+        if craft:
+            forge.special_data.update({tool_name: False})
+        elif permission:
+            for material, amount in tools[tool_name][2].required_materials.items():
+                if resources[material][0] < amount:
+                    forge.special_data.update({tool_name: False})
+                    break
+
+    return forge.special_data
+
+
+def check_army_permission(colony, barracks):
+
+    training = bool(colony.training)
+    army = colony.army.get_army()
+    resources = {**colony.resources.get_resources(), **colony.resources.get_tools()}
+
+    for soldier, permission in barracks.special_data.items():
+        if training:
+            barracks.special_data.update({soldier: False})
+        elif permission:
+            for resource, amount in army[soldier][1].required_resources.items():
+                if resources[resource][0] < amount:
+                    barracks.special_data.update({soldier: False})
+                    break
+
+    return barracks.special_data
