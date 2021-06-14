@@ -1,0 +1,26 @@
+{% extends 'index.html' %}
+{% from 'macros/_remove_milliseconds.html' import remove_milliseconds %}
+
+{% block title %}Raporty
+{% endblock %}
+
+{% block content %}
+
+<a href="/colony/{{current_colony.id}}/status"><button type="button">Powrót do kolonii</button></a>
+<br>
+
+<h1>Raporty</h1>
+
+<ul>
+    {% for rapport in rapports %}
+        <li style="border: 1px solid; margin-bottom: 8px; padding: 4px; width: 50%">
+            <p>
+                <strong>{{ rapport.category|capitalize }}</strong> - 
+                {{ remove_milliseconds(rapport.date) }}
+            </p>
+            <p>{{ rapport.content }}</p>
+        </li>
+    {% endfor %}
+</ul>
+
+{% endblock %}

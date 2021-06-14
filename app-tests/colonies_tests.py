@@ -26,6 +26,10 @@ class ColoniesTests(MyTestCase):
             response = self.client.get('/colony/1/warehouse')
             self.assertEqual(response.status_code, 200)
 
+            # Rapports of colony
+            response = self.client.get('/colony/1/rapports')
+            self.assertEqual(response.status_code, 200)
+
 
     # Create colony
     def test_create_colony(self):
@@ -163,3 +167,30 @@ class ColoniesTests(MyTestCase):
             # Check multiple activate
             response = self.client.post('/colony/1/warehouse', data={'tool': "saw"})
             self.assertEqual(response.status_code, 400)
+
+
+    # Training army
+    def test_start_training(self):
+
+        with patch('app.routes_functions.current_user') as mock_user:
+            mock_user.colonies = Colony.query.all()
+            mock_user.colonies[0].resources.sword = 2
+            mock_user.colonies[0].resources.bow = 1
+            mock_user.colonies[0].buildings.barracks = 1
+
+            # Start training
+            response = self.client.post('/colony/1/barracks', data={'unit': "swordman", 'amount': 1})
+            self.assertEqual(response.status_code, 200)
+
+            # Check data
+            colony = Colony.query.first()
+            self.assertEqual(colony.resources.sword, 1)
+            self.assertTrue(colony.training)
+
+            # Check multiple training
+            response = self.client.post('/colony/1/barracks', data={'unit': "swordman", 'amount': 1})
+            self.assertEqual(response.status_code, 400)
+
+            response = self.client.post('/colony/1/barracks', data={'unit': "bowman", 'amount': 1})
+            self.assertEqual(response.status_code, 400)
+            

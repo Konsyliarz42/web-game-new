@@ -2,7 +2,7 @@ from flask import Blueprint, request, redirect, url_for, abort
 from flask_login import login_required
 from datetime import datetime
 
-from ..models import db, Colony, Buildings, Resources
+from ..models import db, Colony, Buildings, Resources, Rapports
 from ..forms import CreateColonyForm
 from ..routes_functions import response, get_user, get_colony, check_tools_permission, check_army_permission
 
@@ -195,3 +195,18 @@ def building(colony_id, building_name):
         special_content=building_name,
         special_data=special_data
     )
+
+
+@login_required
+@bp.route('/<int:colony_id>/rapports', methods=['GET'])
+def rapports(colony_id):
+
+    user, colony, result = check_request(colony_id)
+
+    if result:
+        return result
+
+    rapports = colony.rapports
+    rapports.reverse()
+
+    return response('colony/rapports.html', rapports=rapports)

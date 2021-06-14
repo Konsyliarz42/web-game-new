@@ -3,7 +3,7 @@ from flask_login import login_user
 
 from app import app as flask_app
 from app.models import db, User, Colony, Buildings, Resources
-from app.assets import buildings as constructions, tools
+from app.assets import buildings as constructions, tools, soldiers
 
 TESTER = {
     'username': 'tester',

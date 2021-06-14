@@ -42,6 +42,15 @@ class User(db.Model, UserMixin):
         return check_password_hash(self.password, password)
 
 
+class Rapports(db.Model):
+
+    id = db.Column(db.Integer(), primary_key=True, nullable=False)
+    colony_id = db.Column(db.Integer(), db.ForeignKey('colony.id'))
+    category = db.Column(db.String(32), nullable=False)
+    date = db.Column(db.DateTime(), default=datetime.today())
+    content = db.Column(db.PickleType(), default=dict())
+
+
 class Army(db.Model):
 
     id = db.Column(db.Integer(), primary_key=True, nullable=False)
@@ -259,6 +268,7 @@ class Colony(db.Model):
     buildings = db.relationship('Buildings', backref='colony', uselist=False)
     resources = db.relationship('Resources', backref='colony', uselist=False)
     army = db.relationship('Army', backref='colony', uselist=False)
+    rapports = db.relationship('Rapports', backref='colony')
 
 
     def __str__(self):
@@ -369,7 +379,7 @@ class Colony(db.Model):
             self.training = training
 
         for resource, r_amount in soldier.required_resources.items():
-            r_amount *= amount + 1
+            r_amount *= amount
             value = getattr(self.resources, resource) - r_amount
             setattr(self.resources, resource, value)
 
@@ -382,11 +392,13 @@ class Colony(db.Model):
 
         # End of build
         _construction_list = self.construction_list.copy()
+        content = dict()
 
         while _construction_list and datetime.today() >= _construction_list[0].end_build:
             construction = _construction_list[0]
             key = construction.__class__.__name__.lower()
             setattr(self.buildings, key, construction.level)
+            content[key] = construction.level
 
             # Change limit of resources
             if construction.name == "Warehouse":
@@ -398,12 +410,21 @@ class Colony(db.Model):
         
         self.construction_list = _construction_list
 
+        if content:
+            db.session.add(Rapports(category='build', content=content, colony=self))
+            content = dict()
+
         # End of craft
         if self.craft and datetime.today() >= self.craft.end_build:
             tool_name = self.craft.name.lower()
             amount = getattr(self.resources, tool_name) + 1
             setattr(self.resources, tool_name, amount)
             self.craft = None
+            content = tool_name
+
+        if content:
+            db.session.add(Rapports(category='craft', content=content, colony=self))
+            content = dict()
 
         # End of active tool
         if self.active_tool and datetime.today() > self.active_tool.end_active:
@@ -417,6 +438,15 @@ class Colony(db.Model):
             setattr(self.army, name, value)
             training.pop(0)
             self.training = training
+
+            if name not in content:
+                content[name] = 1
+            else:
+                content[name] += 1
+
+        if content:
+            db.session.add(Rapports(category='training', content=content, colony=self))
+            content = dict()
 
         # Update current production
         production = dict()
@@ -452,10 +482,15 @@ class Colony(db.Model):
                 
                 if amount < limit:
                     setattr(self.resources, resource, amount)
+                    content[resource] = times*production
                 else:
                     setattr(self.resources, resource, limit)
+                    content[resource] = limit - getattr(self.resources, resource)
 
             self.last_update = datetime.today()
+
+            if content:
+                db.session.add(Rapports(category='production', content=content, colony=self))
 
         # Save update
         db.session.add(self)

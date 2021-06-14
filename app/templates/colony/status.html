@@ -7,6 +7,9 @@
 
 {% block content %}
 
+    <a href="/colony/{{current_colony.id}}/rapports"><button>Raporty</button></a>
+    <br>
+
     <h1>Kolonia {{ current_colony.name }}</h1>
     <p>ID: {{ current_colony.id }}</p>
     <p>
@@ -15,6 +18,7 @@
             <button>Przejdź do profilu</button>
         </a>
     </p>
+    <p>Ostatnie przyznanie surowców: {{ remove_milliseconds(current_colony.last_update) }}</p>
 
     <div>
         <p>Kolejka budowy:</p>
