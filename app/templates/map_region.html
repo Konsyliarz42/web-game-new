@@ -1,0 +1,20 @@
+{% extends 'index.html' %}
+
+{% block title %}Mapa - region: {{ nr }}
+{% endblock %}
+
+{% block content %}
+
+    <ol>
+        {% for colony in colonies %}
+            <li>
+                {% if colony %}
+                    {{ colony }} - <a href="/map/{{nr}}/{{colonies.index(colony)}}"><button type="button">Przejdź</button></a>
+                {% else %}
+                    -
+                {% endif %}
+            </li><br>
+        {% endfor %}
+    </ol>
+    
+{% endblock %}

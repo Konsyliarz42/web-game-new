@@ -32,9 +32,11 @@
                 {% endif %}
 
                 <a href="/user/{{current_user.id}}/profile"><button>Profil użytkownika</button></a>
+                <a href="/map"><button>Mapa</button></a>
             {% else %}
                 <a href="/"><button disabled>Panel administracji</button></a>
                 <a href="/"><button disabled>Profil użytkownika</button></a>
+                <a href="/"><button>Mapa</button></a>
             {% endif%}
         </div>
         

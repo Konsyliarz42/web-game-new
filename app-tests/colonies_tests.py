@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from . import MyTestCase, TESTER, User, Colony, Buildings, Resources
+from . import MyTestCase, TESTER, User, Colony, Buildings, Resources, db
 
 class ColoniesTests(MyTestCase):
 
@@ -42,6 +42,14 @@ class ColoniesTests(MyTestCase):
             response = self.client.post('/colony/create', data=data)
             self.assertEqual(response.status_code, 302)
 
+        colonies = [Colony(name='Test ' + 'x'*x, owner_id=1) for x in range(90)]
+        db.session.bulk_save_objects(colonies[:-1])
+        db.session.commit()
+            
+        for r in range(10):
+            region = Colony.query.filter_by(region=r).all()
+            self.assertTrue(len(region) <= 10)
+        
 
     # Create colony - Bad name
     def test_create_colony_bad_name(self):

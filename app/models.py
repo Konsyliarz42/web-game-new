@@ -2,6 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
+from random import randint
 import copy
 
 from .assets import buildings as b, tools as t, soldiers as s
@@ -259,6 +260,8 @@ class Colony(db.Model):
     name = db.Column(db.String(128), nullable=False, unique=True)
     create_date = db.Column(db.DateTime(), nullable=False, default=datetime.now())
     last_update = db.Column(db.DateTime(), nullable=False, default=datetime.now())
+    region = db.Column(db.Integer(), nullable=False)
+    position = db.Column(db.Integer(), nullable=False)
     
     construction_list = db.Column(db.PickleType(), default=list())
     craft = db.Column(db.PickleType(), default=None)
@@ -283,6 +286,16 @@ class Colony(db.Model):
 
         self.name = name
         self.owner_id = owner_id
+
+        region = randint(0, 9)
+        position = randint(0, 9)
+
+        while Colony.query.filter_by(region=region, position=position).first():
+            region = randint(0, 9)
+            position = randint(0, 9)
+
+        self.region = region
+        self.position = position
 
         buildings = Buildings(colony=self)
         resources = Resources(colony=self)

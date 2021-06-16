@@ -1,7 +1,7 @@
 from flask import Blueprint, request, abort
-from flask_login import login_user, logout_user
+from flask_login import login_user, logout_user, login_required
 
-from ..models import db, User
+from ..models import db, User, Colony
 from ..forms import RegisterForm, LoginForm
 from ..routes_functions import response
 
@@ -50,3 +50,34 @@ def auth():
         r_form=r_form,
         l_form=l_form
     )
+
+
+@login_required
+@bp.route('/map')
+def game_map():
+
+    regions = [len(Colony.query.filter_by(region=x).all()) for x in range(10)]
+
+    return response('map.html', regions=regions)
+
+
+@login_required
+@bp.route('/map/<int:region>')
+def game_map_region(region):
+
+    colonies = Colony.query.filter_by(region=region).all()
+    _colonies = [None]*10
+
+    for colony in colonies:
+        _colonies[colony.position] = colony
+
+    return response('map_region.html', colonies=_colonies, nr=region)
+
+
+@login_required
+@bp.route('/map/<int:region>/<int:position>')
+def game_map_position(region, position):
+
+    colony = Colony.query.filter_by(region=region, position=position).first()
+
+    return response('map_position.html', colony=colony, nr=[region, position])

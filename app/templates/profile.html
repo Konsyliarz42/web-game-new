@@ -18,6 +18,7 @@
                     <p>Nazwa: {{ colony.name }}</p>
                     <p>ID: {{ colony.id }}</p>
                     <p>Data utworzenia: {{ colony.create_date }}</p>
+                    <p>Pozycja: {{ colony.region }}/{{ colony.position }}</p>
                     <form method="POST">
                         <input type="hidden" name="id" value="{{colony.id}}">
                         <input type="hidden" name="form" value="delete_colony">

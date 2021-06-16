@@ -1,0 +1,14 @@
+{% extends 'index.html' %}
+
+{% block title %}Mapa - region: {{ nr[0] }} - pozycja: {{ nr[1] }}
+{% endblock %}
+
+{% block content %}
+
+    <a href="/map/{{nr[0]}}"><button type="button">Wróć</button></a>
+    <br>
+
+    <p>Nazwa: {{ colony.name }}</p>
+    <p>Właściciel: {{ colony.owner.username }}</p>
+    
+{% endblock %}

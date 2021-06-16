@@ -1,0 +1,17 @@
+{% extends 'index.html' %}
+
+{% block title %}Mapa
+{% endblock %}
+
+{% block content %}
+
+    <ol>
+        {% for positions in regions %}
+            <li>
+                Liczba koloni: {{ positions }} 
+                <a href="/map/{{regions.index(positions)}}"><button type="button">Przejdź</button></a>
+            </li><br>
+        {% endfor %}
+    </ol>
+    
+{% endblock %}
